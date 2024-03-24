@@ -1,0 +1,14 @@
+============================================================================
+Lalulla Framework
+============================================================================
+Copyright (C) Lalulla OPC , Inc - All Rights Reserved
+Written by Joel M. Damaso <jammidee@gmail.com>, March 24, 2024
+============================================================================
+ 
+Software Architect: 		Jammi Dee
+Framework Design: 			Jammi Dee
+Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
+Tested / QA by:				Jammi Dee
+
+03/24/2024  - Initial creation of the app.
+            - 

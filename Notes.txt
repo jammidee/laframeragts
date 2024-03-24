@@ -1,0 +1,61 @@
+
+Created by Jammi Dee
+Date: 03/24/2024
+
+La Kubo RAG TS
+La      - lalula
+kubo    - frame
+rag     - regenerative augmented generation
+ts      - Typescript
+
+**Make sure to install the NodeJS preferbly LTS
+**Install the latest VSCode
+
+1. Create a folder and enter the folder
+
+   npm init electron-app@latest lakuboragts -- --template=webpack-typescript
+
+ 	cd lakuboragts
+
+2. To start electron, just run
+
+   npm start
+
+3. To create installer, just run
+
+   npm run make
+
+
+EXTENSIONS
+
+1. Rest Client - Huachao Mao
+2. Tabstop Whitespace Converter - Johnny Wong
+3. Prettier - Code Fomratter - Prettier
+4. JavaSscript Debugger (Nightly) - Microsoft
+5. Material Icon Theme - Philipp Kief
+
+GIT - G1thUUb@!!M3
+---
+
+Create .gitignore on the app root folder
+# Ignore node_modules
+node_modules/
+
+git init           # Initialize a Git repository
+git add .          # Add all files in your project to the staging area
+git config --global user.email "jammi_dee@yahoo.com"
+git config --global user.name "Jammi Dee"
+git commit -m "Initial commit Lalulla Framework for AI Regenerative Augmented Generation (RAG)"  # Commit your changes
+git branch -M main  # Rename the default branch to 'main'
+git remote add origin https://github.com/jammidee/laframeragts.git  # Replace with your GitHub repository URL
+git pull origin main  #if there is error in push
+git pull origin main --allow-unrelated-histories #if there are errors
+git push -u origin main  # Push your code to GitHub
+git rm -r --cached logs
+git remote -v
+
+git status
+git log
+git log --all --graph
+
+
