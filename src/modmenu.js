@@ -73,7 +73,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/4_collections_collection.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/4_collections_collection.png')).resize({ width: 24, height: 24 })
 
             },
             {
@@ -85,7 +85,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/5_content_new.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/5_content_new.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Capture Video',
@@ -96,7 +96,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/10_device_access_camera.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/10_device_access_camera.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Capture Serial',
@@ -107,7 +107,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/10_device_access_usb.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/10_device_access_usb.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'QR Code Reader',
@@ -118,7 +118,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/4_collections_go_to_today.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/4_collections_go_to_today.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Mdb Reader',
@@ -129,7 +129,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/10_device_access_sd_storage.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/10_device_access_sd_storage.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'API Call',
@@ -140,7 +140,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/9_av_shuffle.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/9_av_shuffle.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Report',
@@ -151,7 +151,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/5_content_paste.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/5_content_paste.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'PDF Report',
@@ -162,7 +162,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/4_collections_view_as_list.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/4_collections_view_as_list.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'AdminLTE',
@@ -173,7 +173,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/5_content_paste.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/5_content_paste.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Open Audit',
@@ -184,7 +184,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/10_device_access_sd_storage.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/10_device_access_sd_storage.png')).resize({ width: 24, height: 24 })
             },
             {
               label: 'Configure',
@@ -195,7 +195,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
 
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/2_action_settings.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/2_action_settings.png')).resize({ width: 24, height: 24 })
             },
             {
               type: 'separator',
@@ -224,7 +224,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
                 `);
               },
               icon: nativeImage
-              .createFromPath(path.join(__dirname, '../../icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 24, height: 24 })
+              .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 24, height: 24 })
             },
           ],
         },

@@ -1,0 +1,18 @@
+03/25/2024
+Jammi Dee
+Files here simulates path for the deployment.
+
+In the deployment, similar folders will be created by forge.config.ts
+
+onst config: ForgeConfig = {
+  packagerConfig: {
+    asar: true,
+    extraResource: [
+      path.resolve(__dirname, './src/env.sample'),
+      path.resolve(__dirname, './src/favicon.ico'),
+      path.resolve(__dirname, './src/assets'),
+      path.resolve(__dirname, './src/libs'),
+      path.resolve(__dirname, './src/icons'),
+    ],
+  },
+  rebuildConfig: {},

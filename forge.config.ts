@@ -11,9 +11,19 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
+import path from 'path';
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: [
+      path.resolve(__dirname, './package.json'),
+      path.resolve(__dirname, './src/env.sample'),
+      path.resolve(__dirname, './src/favicon.ico'),
+      path.resolve(__dirname, './src/assets'),
+      path.resolve(__dirname, './src/libs'),
+      path.resolve(__dirname, './src/icons'),
+    ],
   },
   rebuildConfig: {},
   //makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],

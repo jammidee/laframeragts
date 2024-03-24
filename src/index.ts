@@ -71,7 +71,9 @@ var glovars = {
 //=============================================================
 const initializeEnvFile = () => {
   const envFilePath = path.join(process.cwd(), './.env');
-  const exampleEnvFilePath = path.join(__dirname,'../../env.sample');
+  const exampleEnvFilePath = process.cwd() + '/resources/env.sample';
+
+  //console.log(` CWD ${process.cwd()} env.sample path ${exampleEnvFilePath}`);
 
   if (!fs.existsSync(envFilePath)) {
     const exampleEnvContent = fs.readFileSync(exampleEnvFilePath, 'utf-8');
@@ -98,7 +100,8 @@ if (macAddress) {
 // Updates detection section
 // Get the app version from package.json
 //========================================
-const packageJsonPath     = path.join(__dirname, '../../package.json');
+//const packageJsonPath     = path.join(__dirname, '../../resources/package.json');
+const packageJsonPath     = process.cwd() +  '/resources/package.json';
 const packageJsonContent  = fs.readFileSync(packageJsonPath, 'utf-8');
 const appVersion          = JSON.parse(packageJsonContent).version;
 
@@ -236,7 +239,7 @@ const createWindow = (): void => {
 
 //Added by Jammi Dee
 function createTray() {
-  const iconPath = path.join(__dirname, '../../favicon.ico'); // Replace with your icon path
+  const iconPath = path.join(__dirname, '../../resources/favicon.ico'); // Replace with your icon path
   let tray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
@@ -247,7 +250,7 @@ function createTray() {
         mainWindow.maximize();
       },
       icon: nativeImage
-      .createFromPath(path.join(__dirname, '../../icons/std/mdpi/1_navigation_back.png')).resize({ width: 16, height: 16 })
+      .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_back.png')).resize({ width: 16, height: 16 })
     },
     {
       label: 'Quit',
@@ -256,7 +259,7 @@ function createTray() {
         app.quit();
       },
       icon: nativeImage
-      .createFromPath(path.join(__dirname, '../../icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 16, height: 16 })
+      .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 16, height: 16 })
     }
   ]);
 
