@@ -11,4 +11,18 @@ Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
 03/24/2024  - Initial creation of the app.
+            - Added code to the git repo
+            - Added version updater
+            - Added la.bat
+            - Added global variable glovars
+            - Added initializeEnvFile
+            - Added Custom menu
+            - Added OS library
+            - Added app expiration history
+            - Added create login page
+            - Added login-request and login-response
+            - Installed sweetalert2
+            - Installed axios
+            - Fixed the quit issue of the app
+            - Fixed the issue of the icons.
             - 

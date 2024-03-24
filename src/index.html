@@ -8,5 +8,29 @@
   <body>
     <h1>💖 Hello World!</h1>
     <p>Welcome to your Electron application.</p>
+
+    <script>
+
+      const Swal = require('sweetalert2');
+
+      //Declare library for IPC here
+      const { ipcRenderer } = require('electron');
+      window.ipcRenderer = ipcRenderer;
+      const { electron } = window;
+
+      //================================================
+      // Initialize page, happens with the DOM is ready
+      //================================================
+      ipcRenderer.on('data-to-index', (event, data) => {
+        const { title, ...otherdata } = data;
+        document.title = title;
+
+        // Run initialization scripts.
+        ipcRenderer.send('gather-env-info');
+
+      });
+
+    </script>
+
   </body>
 </html>

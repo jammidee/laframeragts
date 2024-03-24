@@ -34,6 +34,15 @@ EXTENSIONS
 4. JavaSscript Debugger (Nightly) - Microsoft
 5. Material Icon Theme - Philipp Kief
 
+LIBRARIES
+
+**dotenv 12/31/2023
+npm install dotenv --save
+npm install axios --save 03/24/2024
+npm install serialport --save
+
+npm install sweetalert2 --save 03/24/2024
+
 GIT - G1thUUb@!!M3
 ---
 

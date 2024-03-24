@@ -1,0 +1,6 @@
+@echo off
+echo Running node build.js...
+node build.js
+
+echo Running npm start...
+npm start
