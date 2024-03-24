@@ -29,7 +29,7 @@ const Swal = require('sweetalert2');
 //====================
 // Declare forms here
 //====================
-// const { createAboutWindow }   = require('./win/winabout/index');
+const { createAboutWindow }   = require('./win/winabout/index');
 // const { createConfigWindow }  = require('./win/winconfig/index');
 // const { createFormWindow }    = require('./win/winform/index');
 // const { createVideoWindow }   = require('./win/winvideo/index');
@@ -271,7 +271,7 @@ function createMainMenu(app, mainWindow, gvars, gshow ) {
             createAboutWindow( mainWindow );
           },
           icon: nativeImage
-          .createFromPath(path.join(__dirname, 'icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 24, height: 24 })
+          .createFromPath(path.join(__dirname, '../../icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 24, height: 24 })
         },
       ]);
 

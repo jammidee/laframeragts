@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>About</title>
+    <!-- <link rel="stylesheet" href="../index.css" />
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css"> -->
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="about-container">
+      <h1>🔥Lalulla Laframetron</h1>
+      <p>
+        Welcome to Lalulla Laframetron, a robust and user-friendly boilerplate for ElectronJS. 
+        This application is crafted to assist you in developing Electron-based applications by 
+        providing pre-coded essentials required for such applications.
+      </p>
+      <p id="txtversion">Version: 1.0.0</p>
+      <p id="txtauthor">Author: Your Name</p>
+      <button id="evtClose">Close</button>
+    </div>
+
+    <!-- Include your external script file -->
+    <script>
+
+      const Swal              = require('sweetalert2');
+      const { remote }        = require('electron');
+      //Declare library for IPC here
+      const { ipcRenderer }   = require('electron');
+      window.ipcRenderer      = ipcRenderer;
+
+      //=================
+      // Initialize page
+      //=================
+      var glovars;
+      ipcRenderer.on('data-to-about', (event, data) => {
+        const { title, pvars, ...otherdata } = data;
+        document.title = title;
+        glovars = pvars;
+      });
+
+      ipcRenderer.on('version-to-about', (event, appinfo) => {
+        // Update the version in the placeholder element
+        document.getElementById('txtauthor').innerText = `Name: ${appinfo.name}`;
+        document.getElementById('txtversion').innerText = `Version: ${appinfo.version}`;
+      })
+
+      //==================================
+      // Custom page events and functions
+      //==================================
+
+      document.getElementById('evtClose').addEventListener('click', async () => {
+        try {
+
+          ipcRenderer.send('close-to-about');
+
+        } catch (error) {
+          console.log(`Error while closing window ${document.title}:`, error);
+        }
+
+      });
+
+    </script>
+
+  </body>
+</html>

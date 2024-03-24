@@ -25,4 +25,5 @@ Tested / QA by:				Jammi Dee
             - Installed axios
             - Fixed the quit issue of the app
             - Fixed the issue of the icons.
+            - Installed dotEnv library
             - 
