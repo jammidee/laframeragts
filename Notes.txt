@@ -45,7 +45,7 @@ git init           # Initialize a Git repository
 git add .          # Add all files in your project to the staging area
 git config --global user.email "jammi_dee@yahoo.com"
 git config --global user.name "Jammi Dee"
-git commit -m "Initial commit Lalulla Framework for AI Regenerative Augmented Generation (RAG)"  # Commit your changes
+git commit -m "Initial commit Lalulla Framework for AI Regenerative Augmented Generation (RAG) Typescript"  # Commit your changes
 git branch -M main  # Rename the default branch to 'main'
 git remote add origin https://github.com/jammidee/laframeragts.git  # Replace with your GitHub repository URL
 git pull origin main  #if there is error in push
