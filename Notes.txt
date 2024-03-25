@@ -44,6 +44,8 @@ npm install serialport --save
 npm install sweetalert2 --save 03/24/2024
 npm install marked --save 03/25/2024
 npm install cli-highlight --save 03/25/2024
+npm install mysql2 --save 03/25/2024
+npm install chalk --save 03/25/2024
 
 GIT - G1thUUb@!!M3
 ---

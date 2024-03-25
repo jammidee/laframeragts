@@ -26,6 +26,10 @@ import { app, BrowserWindow , nativeImage, ipcMain, Menu, ipcRenderer, dialog, T
 
 const path                  = require('path');
 const fs                    = require('fs');
+const highlight             = require('cli-highlight').highlight;
+const { exec }              = require('child_process');
+const mysql                 = require('mysql2/promise');
+const chalk                 = require('chalk');
 
 import os                     from 'os';
 import axios                  from 'axios';
@@ -87,10 +91,10 @@ const tools = [
               }
           },
       },
-      function: async ({ command }) => {
+      function: async ({ command }: { command: string } ) => {
           return new Promise((resolve, reject) => {
               console.log(`Running ${command}`);
-              exec(command, { silent: true }, (code, stdout, stderr) => {
+              exec(command, { silent: true }, (code:any, stdout:any, stderr:any ) => {
       
                   if (code === 0) {
                       console.log(highlight(stdout, { language: 'bash', ignoreIllegals: true }))
@@ -121,7 +125,7 @@ const tools = [
               }
           },
       },
-      function: async ({ sqlscript }) => {
+      function: async ( {sqlscript}: { sqlscript:string } ) => {
           return new Promise(async (resolve, reject) => {
               console.log(`Running ${sqlscript}`);
 
@@ -152,6 +156,36 @@ const tools = [
       }
   }
 ];
+
+//Added by Jammi Dee 12/15/2023
+function generateTextTable( data: any[] ) {
+  const columns = Object.keys(data[0]);
+  const columnWidths:any = {};
+
+  // Find the maximum width for each column
+  columns.forEach(column => {
+    columnWidths[column] = Math.max(column.length, ...data.map(row => String(row[column]).length));
+  });
+
+  // Generate the table header
+  let table = chalk.blue(`+${columns.map(column => '-'.repeat(columnWidths[column] + 2)).join('+')}+\n`);
+  table += chalk.blue(`|${columns.map(column => ` ${column.padEnd(columnWidths[column])} `).join('|')}|\n`);
+  table += chalk.blue(`+${columns.map(column => '-'.repeat(columnWidths[column] + 2)).join('+')}+\n`);
+
+  // Generate the table rows
+  data.forEach(row => {
+    table += chalk.blue(`|${columns.map(column => ` ${String(row[column]).padEnd(columnWidths[column])} `).join('|')}|\n`);
+  });
+
+  table += chalk.blue(`+${columns.map(column => '-'.repeat(columnWidths[column] + 2)).join('+')}+\n`);
+
+  return table;
+};
+
+
+
+
+
 
 //=============================================================
 // Added by Jammi Dee 01/19/2024

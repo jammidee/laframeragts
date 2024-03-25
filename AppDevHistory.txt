@@ -17,6 +17,8 @@ Tested / QA by:				Jammi Dee
             - Added pre-defined prompt for profession
             - Added pre-defined prompt on how the chatbot replies
             - Added chatbot personality
+            - Added mysql2 library
+            - Added chalk library
             - 
 
 03/24/2024  - Initial creation of the app.
