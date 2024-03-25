@@ -101,6 +101,7 @@ if (macAddress) {
 // Get the app version from package.json
 //========================================
 //const packageJsonPath     = path.join(__dirname, '../../resources/package.json');
+console.log(`CWD ${process.cwd()}`);
 const packageJsonPath     = process.cwd() +  '/resources/package.json';
 const packageJsonContent  = fs.readFileSync(packageJsonPath, 'utf-8');
 const appVersion          = JSON.parse(packageJsonContent).version;
@@ -111,7 +112,8 @@ const createWindow = (): void => {
   mainWindow = new BrowserWindow({
     height: 600,
     width: 800,
-    icon: path.join(__dirname, '../../favicon.ico'),
+    //icon: path.join(__dirname, '../../favicon.ico'),
+    icon: process.cwd() +  '/resources/favicon.ico',
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       nodeIntegration: true,
@@ -239,7 +241,8 @@ const createWindow = (): void => {
 
 //Added by Jammi Dee
 function createTray() {
-  const iconPath = path.join(__dirname, '../../resources/favicon.ico'); // Replace with your icon path
+  //const iconPath = path.join(__dirname, '../../resources/favicon.ico'); // Replace with your icon path
+  const iconPath = process.cwd() +  '/resources/favicon.ico';
   let tray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
@@ -250,7 +253,8 @@ function createTray() {
         mainWindow.maximize();
       },
       icon: nativeImage
-      .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_back.png')).resize({ width: 16, height: 16 })
+      //.createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_back.png')).resize({ width: 16, height: 16 })
+      .createFromPath(process.cwd() +  '/resources/icons/std/mdpi/1_navigation_back.png').resize({ width: 16, height: 16 })
     },
     {
       label: 'Quit',
@@ -259,7 +263,8 @@ function createTray() {
         app.quit();
       },
       icon: nativeImage
-      .createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 16, height: 16 })
+      //.createFromPath(path.join(__dirname, '../../resources/icons/std/mdpi/1_navigation_cancel.png')).resize({ width: 16, height: 16 })
+      .createFromPath( process.cwd() +  '/resources/icons/std/mdpi/1_navigation_cancel.png').resize({ width: 16, height: 16 })
     }
   ]);
 

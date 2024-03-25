@@ -10,6 +10,9 @@ Framework Design: 			Jammi Dee
 Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
+03/25/2024  - Created a work arround on the resource using process.cwd() as the initial path
+            - 
+            
 03/24/2024  - Initial creation of the app.
             - Added code to the git repo
             - Added version updater

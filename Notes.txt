@@ -67,4 +67,9 @@ git status
 git log
 git log --all --graph
 
+INSTALLING ASAR
+===============
+npm -g install --engine-strict @electron/asar
+View ASAR:
+asar list app.asar
 

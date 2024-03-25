@@ -23,7 +23,25 @@ const config: ForgeConfig = {
       path.resolve(__dirname, './src/assets'),
       path.resolve(__dirname, './src/libs'),
       path.resolve(__dirname, './src/icons'),
+      path.resolve(__dirname, './node_modules'),
     ],
+    // beforeAsar: [
+    //   async (forgeConfig, tempdir) => {
+
+    //     // Perform operations before packaging the app into .asar
+    //     // For example, copy additional files or directories to the app directory
+  
+    //     const fs = require('fs-extra');
+    //     const path = require('path');
+  
+    //     const sourceFilePath = path.join(__dirname, './src/icons');
+    //     const destinationFilePath = path.join('', './icons');
+  
+    //     // Copy the additional file to the app directory
+    //     await fs.copyFile(sourceFilePath, destinationFilePath);
+    //   },
+    //   // Add more custom hooks if needed...
+    // ],
   },
   rebuildConfig: {},
   //makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
