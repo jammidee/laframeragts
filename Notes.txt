@@ -42,6 +42,8 @@ npm install axios --save 03/24/2024
 npm install serialport --save
 
 npm install sweetalert2 --save 03/24/2024
+npm install marked --save 03/25/2024
+npm install cli-highlight --save 03/25/2024
 
 GIT - G1thUUb@!!M3
 ---

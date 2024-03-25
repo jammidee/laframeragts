@@ -29,6 +29,9 @@ const fs                    = require('fs');
 
 import os                     from 'os';
 import axios                  from 'axios';
+import marked                 from 'marked';
+
+import ollama                 from './libs/SimplyOllama';
 
 //Custom library
 import libt                   from './libs/lalibtools';
@@ -64,6 +67,91 @@ var glovars = {
   allowlogon:     "NO"
 
 };
+
+const tools = [
+  {
+      schema: {
+          type: 'function',
+          function: {
+              name: 'cmd',
+              description: 'execute an arbitrary CMD command',
+              parameters: {
+                  type: 'object',
+                  properties: {
+                      command: {
+                          type: 'string',
+                          description: 'CMD command to run'
+                      }
+                  },
+                  required: ['command']
+              }
+          },
+      },
+      function: async ({ command }) => {
+          return new Promise((resolve, reject) => {
+              console.log(`Running ${command}`);
+              exec(command, { silent: true }, (code, stdout, stderr) => {
+      
+                  if (code === 0) {
+                      console.log(highlight(stdout, { language: 'bash', ignoreIllegals: true }))
+                      resolve(stdout);
+                  } else {
+                      console.log(stderr);
+                      resolve(`${stdout}\n${stderr}`)
+                  }
+              });
+          });
+      }
+  },
+  {
+      schema: {
+          type: 'function',
+          function: {
+              name: 'sql',
+              description: 'execute an arbitrary sql command',
+              parameters: {
+                  type: 'object',
+                  properties: {
+                      sqlscript: {
+                          type: 'string',
+                          description: 'SQL command to run'
+                      }
+                  },
+                  required: ['sqlscript']
+              }
+          },
+      },
+      function: async ({ sqlscript }) => {
+          return new Promise(async (resolve, reject) => {
+              console.log(`Running ${sqlscript}`);
+
+              //-----------------
+              const connection = await mysql.createConnection({
+                  host: process.env.DB_HOST,
+                  database: process.env.DB_NAME,
+                  user: process.env.DB_USER,
+                  password: process.env.DB_PASSWORD,
+                });
+
+                try {
+                  console.log(`Running SQL query: ${sqlscript}`);
+                  const [rows, fields] = await connection.execute(sqlscript);
+                  //const result = JSON.stringify(rows);
+                  const result = '\n\n' + generateTextTable(rows);
+                  //console.log(result);
+                  resolve(result);
+                } catch (error) {
+                  console.error(`Error executing SQL query: ${error.message}`);
+                  resolve(`${error.message}\n${error.stack || ''}`);
+                } finally {
+                  await connection.end();
+                }
+
+              //-----------------
+          });
+      }
+  }
+];
 
 //=============================================================
 // Added by Jammi Dee 01/19/2024
@@ -380,6 +468,186 @@ app.on('activate', () => {
 // Handle the request to Quit the application
 ipcMain.on('quit-to-index', (event, formData) => {
   app.quit();
+});
+
+ipcMain.on('req-ai-answer', async (event, params) => {
+
+  let modelResponse = "";
+  // let chatConfig = {
+  //   model: "llama2",
+  //   role: "user",
+  //   content: "Why is the sky blue?"
+  // };
+
+  const { message, expertise, dstyle, dmodel } = params;
+
+  let persona: any = [];
+  let model = 'llama2';
+
+  //Define Model
+  if( dmodel === 'AUTO'){
+    model = 'llama2';
+  };
+  if( dmodel === 'LLAMA2'){
+    model = 'llama2';
+  };
+  if( dmodel === 'MISTRAL'){
+    model = 'mistral';
+  };
+
+  //Define Expertise
+  if (expertise === 'LINGUIST') {
+    persona.push({ "role": "system", "content": "You are a linguist expert." });
+  }
+  
+  if (expertise === 'LAWYER') {
+    persona.push({ "role": "system", "content": "You are a legendary lawyer and expert in law." });
+  }
+  
+  if (expertise === 'ENGINEER') {
+    persona.push({ "role": "system", "content": "You are a celebrated engineer in the field construction, machines and propulsion." });
+  }
+  
+  if (expertise === 'DOCTOR') {
+    persona.push({ "role": "system", "content": "You are an expert in the field of medicine." });
+  }
+  
+  if (expertise === 'SCIENTIST') {
+    persona.push({ "role": "system", "content": "You are an expert in the field of quantum mechanics." });
+  }
+  if (expertise === 'AUTO') {
+    persona.push({ "role": "system", "content": "Detect the context of the speaker. If he is talking about common sense, be a life coach." });
+    persona.push({ "role": "system", "content": "If he is talking about science, be an expert scientist." });
+    persona.push({ "role": "system", "content": "If he is talking about engineering, be an expert in that field of engineering." });
+    persona.push({ "role": "system", "content": "If he is talking about politics, be an expert lawyer." });
+    persona.push({ "role": "system", "content": "If he is talking about health of medicine, be an expert doctor specialising on that field." });
+    persona.push({ "role": "system", "content": "If you don't know what his talking about, be a comedian. Be Funny and polite." });
+  }
+
+  //Sophia
+  persona.push({ "role": "system", "content": "If you are ask about yourself as Sophia. Tell them that you are a multiple personality chatbot. Explain how you automatically change model to meet the user inquiry." });
+  persona.push({ "role": "system", "content": "If you are ask about yourself as Sophia. Tell them what is multiple personality if its in human." });
+  
+  //Define Response style
+  if (dstyle === 'POET') {
+    persona.push({ "role": "system", "content": "You are a great writer and speaker." });
+    persona.push({ "role": "system", "content": "What you say always rhymes." });
+    persona.push({ "role": "system", "content": "You reply in a light but deep with sarcasm in it." });
+  }
+  
+  if (dstyle === 'COMEDIAN') {
+    persona.push({ "role": "system", "content": "You are the most celebrated comedian." });
+    persona.push({ "role": "system", "content": "Everytime you reply there is always a hint of funny joke in it." });
+    persona.push({ "role": "system", "content": "You reply in a happy and friendly manner." });
+  }
+  
+  if (dstyle === 'PROFESSIONAL') {
+    persona.push({ "role": "system", "content": "You are professional speaker." });
+    persona.push({ "role": "system", "content": "You always reply in a corporate tone, polite and with integrity." });
+  }
+
+  if (dstyle === 'AUTO') {
+    persona.push({ "role": "system", "content": "Detect the tone of the speaker if its serious, comedic, poetic, angry or sad" });
+    persona.push({ "role": "system", "content": "If the speaker is serious, be professional, straight forward and polite." });
+    persona.push({ "role": "system", "content": "If the speaker is comedic, insert a joke, be funny. Use friedly words." });
+    persona.push({ "role": "system", "content": "If the speaker is poetic, reply in rhymes. Use happy and friendly words." });
+    persona.push({ "role": "system", "content": "If the speaker is sad or lonely, reply in symphathy. Use uplifting words." });
+    persona.push({ "role": "system", "content": "Always treat greetings as happy and excited. Use happy and exciting words." });
+  }
+  
+  persona.push({ "role": "user", "content": message });
+
+  let chatConfig = { 
+    "model": model,
+    "messages": persona, 
+    "temperature": 0.7, 
+    "max_tokens": -1,
+    "stream": true
+  };
+
+  function unescapeHTML(html:string) {
+    return html.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  };
+
+  // function parseCodeBlocks(input: string) {
+  //   // Check if the input string contains <code> tags
+  //   if (!/<code>.*?<\/code>/.test(input)) {
+  //       // If no <code> tags are found, return the input string as is
+  //       return input;
+  //   };
+
+  //   // Define the regular expression pattern to match text enclosed by <code> tags
+  //   const pattern = /<code>(.*?)<\/code>/g;
+
+  //   // Replace matches with <blockquote> tags
+  //   const result = input.replace(pattern, (match, codeContent) => {
+  //       // Unescape HTML tags inside the code content
+  //       const unescapedCodeContent = unescapeHTML(codeContent);
+  //       // Return the modified content wrapped in <blockquote> tags
+  //       return `<blockquote class="black-box">${unescapedCodeContent}</blockquote>`;
+  //   });
+
+  //   return result;
+
+  // };
+
+  function parseCodeBlocks(input: string): string {
+    // Check if the input string contains <code> tags
+    if (!/<code>.*?<\/code>/.test(input)) {
+        // If no <code> tags are found, return the input string as is
+        return input;
+    };
+
+    // Define the regular expression pattern to match text enclosed by <code> tags
+    const pattern = /<code>(.*?)<\/code>/g;
+
+    // Replace matches with <pre> tags containing styled code
+    const result = input.replace(pattern, (_, code) => `<pre class="code-block">${unescapeHTML(code)}</pre>`);
+
+    return result;
+};
+
+  async function invokeLLM(props: any) {
+
+    //console.log(`-----`)
+    console.log(`${JSON.stringify(props)}`)
+    //console.log(`-----`)
+
+    try {
+
+      console.log(`Running prompt...`)
+
+      const response = await ollama.chat(props);
+      
+      //console.log(`${response}\n`);
+      let htmlResp = response.replace(/\n/g, '<br>');
+          htmlResp = await marked.parse(htmlResp);
+          htmlResp = parseCodeBlocks(htmlResp);
+
+      console.log(`${htmlResp}\n`);
+
+      //event.returnValue = { htmlResp };
+      const dataResp = { htmlResp, props }; 
+      mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+    }catch(error) {
+      
+      let htmlResp: string = "";
+      htmlResp += `It seems that I got a brain freeze! This is the issue that I encounter: <br> <br> 
+                  ${error}`;
+
+      const dataResp = { htmlResp, props }; 
+      mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+      console.log(`Query failed!`)
+      console.log(error)
+
+    };
+
+  };
+
+  invokeLLM(chatConfig);
+
 });
 
 // In this file you can include the rest of your app's specific main process

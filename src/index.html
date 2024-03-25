@@ -6,12 +6,163 @@
 
   </head>
   <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
+
+    <!-- <div id="heading" class="paper-area">
+      <h1>💖 Hello World!</h1>
+      <p>Welcome to your Electron application.</p>
+    </div> -->
+
+    <!-- Chat container -->
+    <div class="chat-container">
+      <!-- Chat messages -->
+      <div class="chat-messages">
+        <div>
+          <div id="welcome" class="paper-area">
+            <center>
+              <h2>🌟Welcome to Simply Ai</h2>
+            </center>
+            <center>
+              <p>
+                I'm your friendly AI assistant. I'm here to help and support you, &nbsp;
+                but I don't have opinions of my own. While I can assist you in various tasks, &nbsp; 
+                I can't replace the unique qualities and abilities of humans.
+              </p>
+            </center>
+          </div>
+        </div>
+
+        <!-- deviceID, driveCSerial, macAddress, macid -->
+        <div id="gathered-info" class="paper-area">
+          <div>
+            <table>
+              <tr>
+                <td>
+                  <p id="wsid"><i class="fas fa-atom"></i>DEVICE ID </p>
+                </td>
+                <td>
+                  <p id="hddid"><i class="fas fa-atom"></i>STORAGE SN </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p id="macaddr"><i class="fas fa-atom"></i>MAC ADDRESS </p>
+                </td>
+                <td>
+                  <p id="servertime"><i class="fas fa-atom"></i>SERVER TIME</p>
+                </td>
+              </tr>
+            </table>
+            <!-- <p id="wsid"><i class="fas fa-atom"></i>DEVICE ID </p>
+            <p id="hddid"><i class="fas fa-atom"></i>STORAGE SN </p>
+            <p id="macaddr"><i class="fas fa-atom"></i>MAC ADDRESS </p>
+            <p id="servertime"><i class="fas fa-atom"></i>SERVER TIME</p> -->
+            <!-- <p id="machid"><i class="fas fa-atom"></i>MACH ID </p> -->
+          </div>
+        </div>
+        <br>
+
+        <div>
+          <div id="hightlight" class="paper-area">
+            <div>
+              <h4>💖 Hello World!</h4>
+              <p>Welcome to your ElectronJS boilerplate by Lalulla.</p>
+              <table>
+                <tr>
+                  <td>
+                    <p>🌟 Star: Represents excellence, achievement, or special recognition.</p>
+                  </td>
+                  <td>
+                    <p>🔥 Fire: Indicates something that is trendy, hot, or on fire.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p>👍 Thumbs Up: A positive gesture or agreement.</p>
+                  </td>
+                  <td>
+                    <p>🌈 Rainbow: Symbolizes diversity, inclusivity, or positivity.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p>❤️ Red Heart: Represents love, affection, or approval.</p>
+                  </td>
+                  <td>
+                    p><i class="fas fa-atom"></i> Welcome to your Electron application.</p>
+                  </td>
+                </tr>
+              </table>
+              <!-- <p>🌟 Star: Represents excellence, achievement, or special recognition.</p>
+              <p>🔥 Fire: Indicates something that is trendy, hot, or on fire.</p>
+              <p>👍 Thumbs Up: A positive gesture or agreement.</p>
+              <p>🌈 Rainbow: Symbolizes diversity, inclusivity, or positivity.</p>
+              <p>❤️ Red Heart: Represents love, affection, or approval.</p>
+              <p><i class="fas fa-atom"></i> Welcome to your Electron application.</p> -->
+              <button class="btn btn-primary">Click me - a Bootstrap Button</button>
+            </div>
+          </div>
+        </div>
+
+        
+        
+      </div> <!-- Chat messages -->
+
+      <br>
+      <div id="input-area" class="paper-area">
+        <div class="chat-input">
+          <input type="text" id="msgSend" placeholder="Type your message...">
+          <button type="button" id="btnSend">Send</button>
+
+          <div id="loadingIcon" class="hidden"> <!-- Initially hidden -->
+            <!-- Add your animated icon here -->
+            <!-- <img src= "./../resources/assets/llm_wait01.gif" alt="Loading..." width="24" height="24"> -->
+            <p>💖</p>
+          </div>
+
+        </div>
+
+        <!-- New line for dropdown menus -->
+        <div class="dropdowns-container">
+          <!-- Drop down for Inference Engine -->
+          <label for="dmodel">Choose Sophia Personality:</label>
+          <select id="dmodel" name="dmodel">
+            <option value="AUTO" selected>Auto-Detect</option>
+            <option value="LLAMA">Llama</option>
+            <option value="MISTRAL">Mistral</option>
+          </select>
+          <!-- Dropdown for expertise -->
+          <label for="ddexpert">Sophia's Expertise:</label>
+          <select id="ddexpert" name="ddexpert">
+            <option value="AUTO" selected>Auto-Detect</option>
+            <option value="LINGUIST">Linguist</option>
+            <option value="LAWYER">Lawyer</option>
+            <option value="ENGINEER">Engineer</option>
+            <option value="DOCTOR">Doctor</option>
+            <option value="SCIENTIST">Scientist</option>
+          </select>
+
+          <!-- Dropdown for style -->
+          <label for="dstyle">Sophia's Style:</label>
+          <select id="dstyle" name="dstyle">
+            <option value="AUTO" selected>Auto-Detect</option>
+            <option value="POET">Poet</option>
+            <option value="COMEDIAN">Comedian</option>
+            <option value="PROFESSIONAL">Professional</option>
+          </select>
+        </div>
+
+        </div>
+        <!-- Chat Input -->
+
+      </div>
+      <!-- Input Area -->
+
+    </div> <!-- Chat container -->
 
     <script>
 
-      const Swal = require('./resources/node_modules/sweetalert2');
+      const Swal = require( process.cwd() + '/resources/node_modules/sweetalert2');
+      console.log(`html search path ${process.cwd() + '/resources/node_modules/sweetalert2'}`);
 
       //Declare library for IPC here
       const { ipcRenderer } = require('electron');
@@ -29,6 +180,239 @@
         ipcRenderer.send('gather-env-info');
 
       });
+
+      // const Swal = require('sweetalert2');
+      ipcRenderer.on('selected-file', (event, path) => {
+
+        //console.log('Selected file:', path);
+        //alert(path);
+        Swal.fire({
+            title: 'File Dialog',
+            text: 'File ' + path + ' has been selected!',
+            icon: 'success',
+        });
+
+      });
+
+      //Detected machine ID JMD 01/11/2024
+      // ipcRenderer.on('machine-id', (event, machid) => {
+      //   Swal.fire({
+      //       title: 'Device ID Detection',
+      //       text: 'Machine ID: ' + machid + '',
+      //       icon: 'info',
+      //   });
+      // });
+
+      //wait for Time event in main process JMD 02/04/2024
+      ipcRenderer.on('main-update-time', (event, ptime) => {
+        document.getElementById("servertime").innerHTML  = `<i class="fas fa-ethernet"></i> SERVER TIME: ${ptime}`;
+      });
+
+      //Detected Environment Information JMD 02/02/2024
+      ipcRenderer.on('receive-env-info', (event, info) => {
+
+        const { deviceID, driveCSerial, macAddress, macid, needUpdate, currVersion, currChanges, appUpdatePath, isServerUp } = info;
+
+        document.getElementById("wsid").innerHTML     = `💖 </i>DEVICE ID: ${deviceID}`;
+        document.getElementById("hddid").innerHTML    = `🔥 </i>STORAGE SN: ${driveCSerial}`;
+        document.getElementById("macaddr").innerHTML  = `<i class="fas fa-atom"></i> MAC ADDRESS: ${macAddress}`;
+        //document.getElementById("machid").innerHTML = `MACH ID: ${macid}`;
+
+        if( needUpdate == 1){
+
+          document.getElementById('clientupdates').style.display = "block";
+          document.getElementById("clientversion").innerHTML  = `VERSION: ${currVersion}`;
+          document.getElementById("clientchanges").innerHTML  = `${currChanges}. You can <a href="${appUpdatePath}">Download Here</a>.`;
+
+        }
+
+        // Swal.fire({
+        //     title: 'Gathered Environment',
+        //     text: `Device ${deviceID}, Drive Serial ${driveCSerial}, MAC Addr ${macAddress}, Mach ID ${macid}`,
+        //     icon: 'info',
+        // });
+
+        //================================================
+        // If not networked Exit, user can ignore
+        // this message and proceed with the application.
+        //================================================
+        if( macAddress === 'MAC Address not found.' ){
+          Swal.fire({
+              title: 'Alert',
+              text: 'This workstation in not networked. Exiting application!',
+              icon: 'warning', // Change 'info' to 'warning' for a warning icon
+              showCancelButton: false,
+              confirmButtonText: 'OK',
+            }).then((result) => {
+              if (result.isConfirmed) {
+
+                ipcRenderer.send('quit-to-index');
+
+              }
+          });
+
+        } else {
+
+          // Exit if the server is down
+          if( isServerUp === 'NO' ){
+            Swal.fire({
+              title: 'Alert',
+              text: 'The Server is down. Terminating the app...',
+              icon: 'warning', // Change 'info' to 'warning' for a warning icon
+              showCancelButton: false,
+              confirmButtonText: 'OK',
+            }).then((result) => {
+              if (result.isConfirmed) {
+
+                ipcRenderer.send('quit-to-index');
+
+              }
+            });
+          } else {
+
+            ipcRenderer.send('request-to-login');
+
+          }
+
+        }
+
+        // if(macAddress === 'MAC Address not found.'){
+        //   Swal.fire({
+        //     title: 'Alert',
+        //     text: 'This workstation in not networked. Exiting application!',
+        //     icon: 'warning', // Change 'info' to 'warning' for a warning icon
+        //     showCancelButton: false,
+        //     confirmButtonText: 'OK',
+        //   }).then((result) => {
+        //     if (result.isConfirmed) {
+
+        //       // Quit the main application
+        //       ipcRenderer.send('quit-to-index');
+
+        //     }
+        //   });
+
+        // } else {
+
+        //   // Initiate the login sequence.
+        //   ipcRenderer.send('request-to-login');
+
+        // }
+
+      });
+
+      //==================================
+      // Custom form initialization
+      //==================================
+
+      //electron comes from preload
+      if( process.env.ALLOW_LOGIN === 'NO'){
+
+        const welcome = document.getElementById('welcome');
+        welcome.style.display = 'block';
+
+        // const iniForm = document.getElementById('mainform');
+        // iniForm.style.display = 'block';
+
+      } else {
+
+        const welcome = document.getElementById('welcome');
+        welcome.style.display = 'block';
+
+        // const iniForm = document.getElementById('mainform');
+        // iniForm.style.display = 'none';
+
+      };
+
+      var btnSend     = document.getElementById('btnSend');
+      var loadingIcon = document.getElementById('loadingIcon');
+
+      document.getElementById('btnSend').addEventListener('click', function() {
+
+        // Hide the button and show the loading icon
+        btnSend.style.display = 'none';
+        loadingIcon.classList.remove('hidden');
+
+        //document.getElementById('welcome').style.display        = 'none';
+        document.getElementById('hightlight').style.display     = 'none';
+        document.getElementById('gathered-info').style.display  = 'none';
+
+        sendMessage();
+
+      });
+
+      document.getElementById('msgSend').addEventListener('keypress', function() {
+        if (event.keyCode === 13) {
+
+          // Hide the button and show the loading icon
+          btnSend.style.display = 'none';
+          loadingIcon.classList.remove('hidden');
+
+          //document.getElementById('welcome').style.display        = 'none';
+          document.getElementById('hightlight').style.display     = 'none';
+          document.getElementById('gathered-info').style.display  = 'none';
+
+          event.preventDefault();
+
+          sendMessage();
+        }
+      });
+
+      function sendMessage(){
+
+        const expertise = document.getElementById('ddexpert').value;
+        const dstyle    = document.getElementById('dstyle').value;
+        const dmodel    = document.getElementById('dmodel').value;
+
+        var msgInput = document.getElementById('msgSend');
+        var message = msgInput.value.trim();
+
+        if (message !== '') {
+          var chatContainer   = document.querySelector('.chat-container');
+          var chatMessages    = document.querySelector('.chat-messages');
+          var messageElement  = document.createElement('div');
+          var elemSpacer      = document.createElement('br');
+          var elemLine        = document.createElement('br');
+
+          messageElement.classList.add('paper-area');
+          messageElement.innerHTML = `🌟 <b>You</b><br>${message}`;
+
+          chatMessages.appendChild(elemSpacer);
+          chatMessages.appendChild(messageElement);
+          chatContainer.scrollTop = chatMessages.scrollHeight;
+          
+          // Clear the input field after sending the message
+          msgInput.value = '';
+
+          const params = { message, expertise, dstyle, dmodel };
+          ipcRenderer.send('req-ai-answer', params );
+
+        };
+
+      };
+
+      ipcRenderer.on('resp-ai-answer', (event, dataResp ) => {
+
+          const { htmlResp, props } = dataResp;
+          //alert( response );
+
+          var chatContainer   = document.querySelector('.chat-container');
+          var replyElement    = document.createElement('div');
+          var chatMessages    = document.querySelector('.chat-messages');
+          var elemLine        = document.createElement('br');
+
+          replyElement.classList.add('paper-area');
+          replyElement.innerHTML = `💖<b>Sophia</b> <font color="grey">( ${props.model} talking... )</font><br> ${htmlResp}`;
+          chatMessages.appendChild(elemLine);
+          chatMessages.appendChild(replyElement);
+
+          chatContainer.scrollTop = chatMessages.scrollHeight;
+
+          btnSend.style.display = 'inline-block';
+          loadingIcon.classList.add('hidden');
+
+      });
+
 
     </script>
 

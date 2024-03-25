@@ -24,12 +24,12 @@
 
 const axios = require('axios');
 
-const API_ORIGIN    = 'http://127.0.0.1:11434';
+const API_ORIGIN    = 'http://127.0.0.1';
 const API_PORT      = '11434';
-const API_VERSION   = 'v1';
+const API_VERSION   = 'api';
 
 const API_MODEL     = 'llama2';
-const API_TAG       = '';
+const API_TAG       = 'api';
 
 class SimplyOllama {
 
@@ -52,7 +52,7 @@ class SimplyOllama {
 
     async chat(request) {
         //const url = `${this.baseURL}/chat/completions`;
-        const url = `${this.baseURL}/chat`;
+        const url = `${this.baseURL}/${API_VERSION}/chat`;
         
         try {
 

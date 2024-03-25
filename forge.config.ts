@@ -17,13 +17,19 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     extraResource: [
+
+      //===========================================
+      // This will copy the files to the resources
+      // folder.
+      //===========================================
       path.resolve(__dirname, './package.json'),
       path.resolve(__dirname, './src/env.sample'),
       path.resolve(__dirname, './src/favicon.ico'),
-      path.resolve(__dirname, './src/assets'),
-      path.resolve(__dirname, './src/libs'),
-      path.resolve(__dirname, './src/icons'),
-      path.resolve(__dirname, './node_modules'),
+      path.resolve(__dirname, './resources/win'),
+      path.resolve(__dirname, './resources/assets'),
+      path.resolve(__dirname, './resources/libs'),
+      path.resolve(__dirname, './resources/icons'),
+      //path.resolve(__dirname, './node_modules'),
     ],
     // beforeAsar: [
     //   async (forgeConfig, tempdir) => {

@@ -1,7 +1,166 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif;
-  margin: auto;
-  max-width: 38rem;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  /* max-width: 38rem;
+  padding: 2rem; */
+
+  background-color: #f0efef !important;
+}
+
+.paper-area {
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  /* max-width: 800px; */
+  width: 100%;
+}
+
+.flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow-y: auto;
+}
+
+/* Style for the chat container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 80vh; /* Set the height of the chat container */
+  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+  padding: 5rem;
+  width: 60%; /* Adjust the width of the chat container */
+  margin: 10 auto; /* Center the chat container horizontally */
+  border-radius: 10px; /* Add rounded corners */
+  background-color: #f8f8f8; /* Add background color */
+}
+
+/* Thin scrollbar */
+.chat-container::-webkit-scrollbar {
+  width: 5px; /* Set the width of the scrollbar */
+}
+
+/* Track */
+.chat-container::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color of the scrollbar track */
+}
+
+/* Handle */
+.chat-container::-webkit-scrollbar-thumb {
+  background: #c1bfbf; /* Color of the scrollbar handle */
+  border-radius: 5px; /* Roundness of the scrollbar handle */
+}
+
+/* Handle on hover */
+.chat-container::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color of the scrollbar handle on hover */
+}      
+
+/* Style for the chat messages */
+.chat-messages {
+  flex: 1; /* Allow the chat messages to grow and occupy remaining space */
+}
+
+/* Style for the textbox container */
+.textbox-container {
+  padding: 10px;
+}
+
+/* Style for the textbox */
+.textbox {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.chat-input {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.chat-input input {
+  flex: 1; /* Let the input field take remaining space */
+  padding: 8px;
+  border-radius: 20px; /* Add rounded corners to the input field */
+  border: 1px solid #ccc;
+  margin-right: 10px; /* Add spacing between input and button */
+}
+
+.chat-input button {
+  padding: 8px 16px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 20px; /* Add rounded corners to the button */
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+label {
+  display: block; /* Ensures each label appears on a new line */
+  margin-bottom: 5px; /* Adds some spacing between labels */
+}
+
+/* Style for dropdowns */
+select {
+  margin-bottom: 10px; /* Adds some spacing between dropdowns */
+}
+
+/* Style for dropdown options */
+.dropdowns-container select {
+  font-size: 10px; /* Adjust the font size for the dropdown options */
+}
+
+.dropdowns-container {
+  display: inline-block;
+  margin-top: 10px; /* Adjust the margin as needed */
+  font-size: 10px;
+}
+
+.dropdowns-container {
+  display: flex;
+  flex-wrap: wrap; /* Ensures items wrap onto the next line if there's not enough space */
+}
+
+.dropdowns-container > * {
+  margin-right: 10px; /* Adds some spacing between dropdowns */
+  margin-bottom: 10px; /* Adds vertical spacing between the dropdowns and other elements */
+}
+
+.black-box {
+  background-color: black;
+  color: white; /* Set text color to contrast with the black background */
+  padding: 10px; /* Adjust padding as needed */
+  border-radius: 5px; /* Optional: Add rounded corners */
+}
+
+/* .code-block {
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  padding: 10px;
+} */
+
+.code-block {
+  background-color: #2b2b2b; /* Darker background color */
+  color: #ffffff; /* White text color */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  padding: 8px; /* Reduced padding */
+  font-size: 12px; /* Smaller font size */
 }
