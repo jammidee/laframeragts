@@ -25,6 +25,10 @@ Tested / QA by:				Jammi Dee
             - Added Master Model in the env.
             - Added support to bootstrap and fontawesome
             - Added processing of special message
+            - Added events for the icons in the UI area
+            - Added File selection and keep the filename
+            - Add a way to change the value of model in the cli
+            - Added template for cli commands
             - 
 
 03/25/2024  - Created a work arround on the resource using process.cwd() as the initial path

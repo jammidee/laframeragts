@@ -99,7 +99,7 @@ body {
 
 .chat-input input {
   flex: 1; /* Let the input field take remaining space */
-  font-size: 12px;
+  font-size: 14px;
   padding: 8px;
   border-radius: 20px; /* Add rounded corners to the input field */
   border: 1px solid #ccc;

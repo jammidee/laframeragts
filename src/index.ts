@@ -348,7 +348,9 @@ const createWindow = (): void => {
     dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
       filters: [
-        { name: 'Text Files', extensions: ['txt'] },
+        { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
+        { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
+        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
         { name: 'All Files', extensions: ['*'] },
       ],
     })

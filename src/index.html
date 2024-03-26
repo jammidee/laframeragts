@@ -152,19 +152,21 @@
             <option value="PROFESSIONAL">Professional</option>
           </select>
 
-          <span id="configure" title="configure" style="cursor: pointer;">
-            <i class="fas fa-cogs"></i>
-          </span>
           <span id="upload" title="Upload" style="cursor: pointer;">
             <i class="fas fa-upload"></i>
           </span>
           <span id="photocapture" title="Photo Capture" style="cursor: pointer;">
             <i class="fas fa-camera"></i>
           </span>
-        
-
+          <span id="configure" title="configure" style="cursor: pointer;">
+            <i class="fas fa-cogs"></i>
+          </span>
         </div>
 
+        <div class="dropdowns-container">
+          <label for="attachment">Attachment:</label>
+          <input type="text" id="attachment" placeholder="File to attach here..." style="font-family: Arial, sans-serif; font-size: 10px; width: 300px;" >
+        </div>
 
 
         <!-- </div> -->
@@ -194,19 +196,6 @@
 
         // Run initialization scripts.
         ipcRenderer.send('gather-env-info');
-
-      });
-
-      // const Swal = require('sweetalert2');
-      ipcRenderer.on('selected-file', (event, path) => {
-
-        //console.log('Selected file:', path);
-        //alert(path);
-        Swal.fire({
-            title: 'File Dialog',
-            text: 'File ' + path + ' has been selected!',
-            icon: 'success',
-        });
 
       });
 
@@ -392,9 +381,17 @@
 
       function sendMessage(){
 
+        var chatContainer   = document.querySelector('.chat-container');
+        var messageElement  = document.createElement('div');
+        var replyElement    = document.createElement('div');
+        var chatMessages    = document.querySelector('.chat-messages');
+        var elemLine        = document.createElement('br');
+        var elemSpacer      = document.createElement('br');
+
         const expertise = document.getElementById('ddexpert').value;
         const dstyle    = document.getElementById('dstyle').value;
         const dmodel    = document.getElementById('dmodel').value;
+        const attach    = document.getElementById("attachment").value;
 
         var msgInput = document.getElementById('msgSend');
         var message = msgInput.value.trim();
@@ -404,7 +401,64 @@
         //==========================
         if( message.startsWith("::") ){
 
+          const regex = /::(\w+)=(\w+)/;
+          const matches = message.match(regex);
+
+          let key, value;
+
+          if (matches) {
+            const [, key, value] = matches;
+            console.log("Key:", key); // Output: model
+
+            if (value) {
+              
+              //------------------
+              if(key ==="model" ){
+
+                document.getElementById('dmodel').value = value;
+
+                messageElement.classList.add('paper-area');
+                messageElement.innerHTML = `🌟 <b>You</b><br>${message}`;
+                chatMessages.appendChild(elemSpacer);
+                chatMessages.appendChild(messageElement);
+
+                const htmlResp = `Setting the model to ${value}.`;
+                replyElement.classList.add('sophia-area');
+                replyElement.innerHTML = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
+                chatMessages.appendChild(elemLine);
+                chatMessages.appendChild(replyElement);
+
+                chatContainer.scrollTop = chatMessages.scrollHeight;
+
+                btnSend.style.display = 'inline-block';
+                loadingIcon.classList.add('hidden');  
+
+              };
+              //------------------
+
+            } else {
+
+            };
+
+          } else {
+
+            // Single command
+            if(message ==="::quit"){
+              messageElement.classList.add('paper-area');
+              messageElement.innerHTML = `🌟 <b>You</b><br>${message}. You are requesting to terminate chatting to me.`;
+              chatMessages.appendChild(elemSpacer);
+              chatMessages.appendChild(messageElement);
+            };
+
+            btnSend.style.display = 'inline-block';
+            loadingIcon.classList.add('hidden');  
+
+          };
+
+          msgInput.value = '';
+
           return;
+
         };
 
         if (message !== '') {
@@ -424,7 +478,7 @@
           // Clear the input field after sending the message
           msgInput.value = '';
 
-          const params = { message, expertise, dstyle, dmodel };
+          const params = { message, expertise, dstyle, dmodel, attach };
           ipcRenderer.send('req-ai-answer', params );
 
         };
@@ -455,7 +509,22 @@
 
       document.getElementById("upload").addEventListener("click", function() {
         
-        alert(`Upload!`);
+        ipcRenderer.send('main-open-file-dialog', 'OK');
+
+      });
+
+      // const Swal = require('sweetalert2');
+      ipcRenderer.on('selected-file', (event, path) => {
+
+        //console.log('Selected file:', path);
+        //alert(path);
+        Swal.fire({
+            title: 'File Dialog',
+            text: 'File ' + path + ' has been selected!',
+            icon: 'success',
+        });
+
+        document.getElementById("attachment").value  = path ;
 
       });
 
