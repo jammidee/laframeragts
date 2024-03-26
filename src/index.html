@@ -4,9 +4,6 @@
     <meta charset="UTF-8" />
     <title>Hello World!</title>
 
-    <link rel="stylesheet" href="../resources/css/@fortawesome/fontawesome-free/css/all.min.css" />
-    <link rel="stylesheet" href="../resources/css/bootstrap/dist/css/bootstrap.min.css">
-
   </head>
   <body>
 
@@ -69,30 +66,30 @@
           <div id="hightlight" class="paper-area">
             <div>
               <h4>💖 Hello World!</h4>
-              <p>Welcome to your ElectronJS boilerplate by Lalulla.</p>
+              <p>Welcome to your ElectronJS Chatbot boilerplate by Lalulla.</p>
               <table>
                 <tr>
                   <td>
-                    <p>🌟 Star: Represents excellence, achievement, or special recognition.</p>
+                    <p>🌟 Star: Excellence, achievement</p>
                   </td>
                   <td>
-                    <p>🔥 Fire: Indicates something that is trendy, hot, or on fire.</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <p>👍 Thumbs Up: A positive gesture or agreement.</p>
-                  </td>
-                  <td>
-                    <p>🌈 Rainbow: Symbolizes diversity, inclusivity, or positivity.</p>
+                    <p>🔥 Fire: Trendy, hot, or on fire</p>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <p>❤️ Red Heart: Represents love, affection, or approval.</p>
+                    <p>👍 Thumbs Up: Positive gesture or agreement</p>
                   </td>
                   <td>
-                    p><i class="fas fa-atom"></i> Welcome to your Electron application.</p>
+                    <p>🌈 Rainbow: Diversity, inclusivity, or positivity</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p>🔥 Red Heart: Love, affection, or approval.</p>
+                  </td>
+                  <td>
+                    <p>💖 Welcome to your Electron application.</p>
                   </td>
                 </tr>
               </table>
@@ -119,9 +116,10 @@
 
           <div id="loadingIcon" class="hidden"> <!-- Initially hidden -->
             <!-- Add your animated icon here -->
-            <!-- <img src= "./../resources/assets/llm_wait01.gif" alt="Loading..." width="24" height="24"> -->
+            <!-- <img src= "../resources/assets/llm_wait01.gif" alt="Loading..." width="24" height="24"> -->
             <p>💖</p>
           </div>
+
 
         </div>
 
@@ -130,9 +128,9 @@
           <!-- Drop down for Inference Engine -->
           <label for="dmodel">Choose Sophia Personality:</label>
           <select id="dmodel" name="dmodel">
-            <option value="AUTO" selected>Auto-Detect</option>
-            <option value="LLAMA">Llama</option>
-            <option value="MISTRAL">Mistral</option>
+            <option value="auto" selected>Auto-Detect</option>
+            <option value="llama2">Llama</option>
+            <option value="mistral">Mistral</option>
           </select>
           <!-- Dropdown for expertise -->
           <label for="ddexpert">Sophia's Expertise:</label>
@@ -153,9 +151,23 @@
             <option value="COMEDIAN">Comedian</option>
             <option value="PROFESSIONAL">Professional</option>
           </select>
-        </div>
+
+          <span id="configure" title="configure" style="cursor: pointer;">
+            <i class="fas fa-cogs"></i>
+          </span>
+          <span id="upload" title="Upload" style="cursor: pointer;">
+            <i class="fas fa-upload"></i>
+          </span>
+          <span id="photocapture" title="Photo Capture" style="cursor: pointer;">
+            <i class="fas fa-camera"></i>
+          </span>
+        
 
         </div>
+
+
+
+        <!-- </div> -->
         <!-- Chat Input -->
 
       </div>
@@ -218,8 +230,8 @@
         const { deviceID, driveCSerial, macAddress, macid, needUpdate, currVersion, currChanges, appUpdatePath, isServerUp } = info;
 
         document.getElementById("wsid").innerHTML     = `💖 </i>DEVICE ID: ${deviceID}`;
-        document.getElementById("hddid").innerHTML    = `🔥 </i>STORAGE SN: ${driveCSerial}`;
-        document.getElementById("macaddr").innerHTML  = `<i class="fas fa-atom"></i> MAC ADDRESS: ${macAddress}`;
+        document.getElementById("hddid").innerHTML    = `💖 </i>STORAGE SN: ${driveCSerial}`;
+        document.getElementById("macaddr").innerHTML  = `💖 MAC ADDRESS: ${macAddress}`;
         //document.getElementById("machid").innerHTML = `MACH ID: ${macid}`;
 
         if( needUpdate == 1){
@@ -303,6 +315,22 @@
 
         // }
 
+        ipcRenderer.send('get-ai-tags');
+
+      });
+
+      //Added by Jammi Dee 03/26/2024
+      ipcRenderer.on('resp-get-ai-tags', (event, models) => {
+        // Loop through models array to generate options
+        const dmodelSelect = document.getElementById("dmodel");
+        dmodelSelect.innerHTML = "";
+        dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
+        models.forEach(model => {
+
+          const modelName = model.model.split(":")[0];
+          dmodelSelect.innerHTML += `<option value="${modelName}">${model.name}</option>`;
+
+        });
       });
 
       //==================================
@@ -371,6 +399,14 @@
         var msgInput = document.getElementById('msgSend');
         var message = msgInput.value.trim();
 
+        //==========================
+        // Process special commands
+        //==========================
+        if( message.startsWith("::") ){
+
+          return;
+        };
+
         if (message !== '') {
           var chatContainer   = document.querySelector('.chat-container');
           var chatMessages    = document.querySelector('.chat-messages');
@@ -405,7 +441,7 @@
           var chatMessages    = document.querySelector('.chat-messages');
           var elemLine        = document.createElement('br');
 
-          replyElement.classList.add('paper-area');
+          replyElement.classList.add('sophia-area');
           replyElement.innerHTML = `💖<b>Sophia</b> <font color="grey">( ${props.model} talking... )</font><br> ${htmlResp}`;
           chatMessages.appendChild(elemLine);
           chatMessages.appendChild(replyElement);
@@ -414,6 +450,24 @@
 
           btnSend.style.display = 'inline-block';
           loadingIcon.classList.add('hidden');
+
+      });
+
+      document.getElementById("upload").addEventListener("click", function() {
+        
+        alert(`Upload!`);
+
+      });
+
+      document.getElementById("photocapture").addEventListener("click", function() {
+        
+        alert(`Photo Capture!`);
+
+      });
+
+      document.getElementById("configure").addEventListener("click", function() {
+        
+        alert(`Configure!`);
 
       });
 

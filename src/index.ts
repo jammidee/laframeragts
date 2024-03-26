@@ -64,27 +64,42 @@ if (require('electron-squirrel-startup')) {
 //==================
 // Global variables
 //==================
-var glovars = {
-  token:                  "",
-  macaddress:             "",
-  deviceid:               "",
-  driveserial:            "",
-
-  clientversion:          0,
-  latestclientversion:    0,
-  needupdate:             0,
-  currversion:            "",
-  currchanges:            "",
-
-  macid:                  "",
-
-  username:               "sadmin",
-  entityid:               "LALULLA",
-  appid:                  "RAG",
-  roleid:                 "USER",
-  locked:                 "YES",
-  allowlogon:             "NO"
-
+var glovars: { // Define the type of glovars object
+  token: string;
+  macaddress: string;
+  deviceid: string;
+  driveserial: string;
+  clientversion: number;
+  latestclientversion: number;
+  needupdate: number;
+  currversion: string;
+  currchanges: string;
+  macid: string;
+  username: string;
+  entityid: string;
+  appid: string;
+  roleid: string;
+  locked: string;
+  allowlogon: string;
+  models: Array<any>; // Explicitly define models as an array
+} = {
+  token: "",
+  macaddress: "",
+  deviceid: "",
+  driveserial: "",
+  clientversion: 0,
+  latestclientversion: 0,
+  needupdate: 0,
+  currversion: "",
+  currchanges: "",
+  macid: "",
+  username: "sadmin",
+  entityid: "LALULLA",
+  appid: "RAG",
+  roleid: "USER",
+  locked: "YES",
+  allowlogon: "NO",
+  models: [] // Initialize models as an empty array
 };
 
 const tools = [
@@ -750,7 +765,50 @@ ipcMain.on('gather-env-info', async function (event) {
     console.error('Error getting machine ID:', error);
   });
 
-});
+}); 
+
+//Added by Jammi Dee 03/26/2024
+ipcMain.on('get-ai-tags', async function (event) {
+
+  let chatConfig = { 
+    "model": "llama2",
+    "messages": "Hello earthlings", 
+    "temperature": 0.7, 
+    "max_tokens": -1,
+    "stream": true
+  };
+  //Actually chatConfig is not used
+  try {
+    const response = await ollama.tags(chatConfig);
+    
+    // Check if response has models
+    if (response && response.models && Array.isArray(response.models)) {
+      // Loop through each model
+      response.models.forEach((model:any) => {
+
+          glovars.models.push( model );
+          // Access properties of each model
+          console.log('Name:', model.name);
+          console.log('Model:', model.model);
+          console.log('Modified At:', model.modified_at);
+          console.log('Size:', model.size);
+          console.log('Digest:', model.digest);
+          console.log('Details:', model.details);
+          console.log('--------------------------');
+      });
+
+      response.models
+      mainWindow.webContents.send('resp-get-ai-tags', response.models );
+
+    } else {
+        console.error('No models found in the response.');
+    };
+
+  } catch (error) {
+      console.error('Error occurred while fetching tags:', error);
+  };
+
+}); //ipcMain.on('get-ai-tags', async function (event)
 
 //=======================
 // Global Token Updates
@@ -807,18 +865,15 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   const { message, expertise, dstyle, dmodel } = params;
 
+  console.log(`The model is ${dmodel}`);
   let persona: any = [];
   let model = 'llama2';
 
   //Define Model
-  if( dmodel === 'AUTO'){
-    model = 'llama2';
-  };
-  if( dmodel === 'LLAMA2'){
-    model = 'llama2';
-  };
-  if( dmodel === 'MISTRAL'){
-    model = 'mistral';
+  if( dmodel === 'auto'){
+    model = process.env.AI_MASTER_MODEL;
+  } else {
+    model = dmodel;
   };
 
   //Define Expertise
@@ -917,7 +972,25 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   // };
 
+  const hljs = require('highlight.js');
+  function highlightCode(code:string, language = 'auto') {
+    // Highlight the code using highlight.js
+    const highlightedCode = hljs.highlightAuto(code, [language]).value;
+    return highlightedCode;
+  }
+
+  const prettier = require('prettier');
+  function formatCode(unformattedCode: string): string {
+    return prettier.format(unformattedCode, {
+      semi: false,
+      singleQuote: true,
+      tabWidth: 2,
+      // Omitting the 'parser' option to enable automatic detection
+    });
+  }
+
   function parseCodeBlocks(input: string): string {
+
     // Check if the input string contains <code> tags
     if (!/<code>.*?<\/code>/.test(input)) {
         // If no <code> tags are found, return the input string as is
