@@ -47,6 +47,12 @@ npm install cli-highlight --save 03/25/2024
 npm install mysql2 --save 03/25/2024
 npm install chalk --save 03/25/2024
 
+npm install node-machine-id --save 03/26/2024
+npm install prettier --save 03/26/2024
+
+npm install @fortawesome/fontawesome-free --save 03/26/2024
+npm install bootstrap --save 03/26/2024
+
 GIT - G1thUUb@!!M3
 ---
 

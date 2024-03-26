@@ -29,7 +29,9 @@ const config: ForgeConfig = {
       path.resolve(__dirname, './resources/assets'),
       path.resolve(__dirname, './resources/libs'),
       path.resolve(__dirname, './resources/icons'),
-      //path.resolve(__dirname, './node_modules'),
+      path.resolve(__dirname, './resources/tools'),
+      path.resolve(__dirname, './resources/css'),
+      //path.resolve(__dirname, './resources/node_modules'),
     ],
     // beforeAsar: [
     //   async (forgeConfig, tempdir) => {

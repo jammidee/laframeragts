@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="login-container">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+      </form>
+      <!-- <button id="closeButton">Close</button> -->
+    </div>
+
+    <!-- Include your external script file -->
+    <script>
+
+      //Declare library for IPC here
+      const Swal              = require('sweetalert2');
+      const { remote }        = require('electron');
+      const { ipcRenderer }   = require('electron');
+      window.ipcRenderer      = ipcRenderer;
+
+      //=================
+      // Initialize page
+      //=================
+      ipcRenderer.on('data-to-login', (event, data) => {
+        const { title, ...otherdata } = data;
+        document.title = title;
+      });
+      ipcRenderer.on('basic-to-login', (event, data) => {
+        
+        console.log('Received data:', data);
+        const { user, password } = data;
+
+        // Ensure that user and password are strings
+        const strUser = user.toString();
+        const strPassword = password.toString();
+
+        // Update the content of the username and password fields
+        document.getElementById('username').value = strUser;
+        document.getElementById('password').value = strPassword;
+
+      });
+
+      //==================================
+      // Custom page events and functions
+      //==================================
+
+      // document.getElementById('evtClose').addEventListener('click', async () => {
+      //   try {
+
+      //     ipcRenderer.send('close-to-login');
+
+      //   } catch (error) {
+      //     console.log(`Error while closing window ${document.title}:`, error);
+      //   }
+
+      // });
+
+      document.getElementById('loginForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        ipcRenderer.send('login-request', { username, password });
+
+      });
+
+      ipcRenderer.on('login-response', (event, response) => {
+        if (response.success) {
+          // Handle successful login, send token globally
+          const token     = response.token;
+          const userData  = response.token;
+          ipcRenderer.send('global-update-token', { token, userData } );
+
+          // Close the login window
+          ipcRenderer.send('login-modal-closed');
+
+        } else {
+          // Handle login failure
+          console.error('Login failed:', response.error);
+
+          // Show SweetAlert2 alert on login failure
+          const Swal = require('sweetalert2');
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: 'Invalid username or password. Please try again.',
+          });
+        }
+      });
+
+      document.getElementById('closeButton').addEventListener('click', () => {
+        //ipcRenderer.send('login-modal-closed');
+        ipcRenderer.send('quit-to-index', 'OK')
+      });
+
+
+    </script>
+
+  </body>
+</html>

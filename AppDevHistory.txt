@@ -10,6 +10,16 @@ Framework Design: 			Jammi Dee
 Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
+03/26/2024  - Added node-machine-id library
+            - Added ipc:gather-env-info
+            - Added Prettier library
+            - Fixed the issue of typescript with undeclared variables
+            - Added the winlogin page
+            - Added tools folder in the resources
+            - Copying of files not applicable in electronjs Typescript. Disabled it.
+            - Installed @fortawesome/fontawesome-free library
+            - 
+
 03/25/2024  - Created a work arround on the resource using process.cwd() as the initial path
             - Installed npm install cli-highlight library
             - Fixed the UI for chat purpose
