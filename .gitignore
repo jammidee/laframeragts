@@ -90,3 +90,7 @@ typings/
 
 # Electron-Forge
 out/
+
+# Chroma Database
+chroma.log
+db_chrome/

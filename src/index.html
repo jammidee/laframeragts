@@ -166,6 +166,7 @@
         <div class="dropdowns-container">
           <label for="attachment">Attachment:</label>
           <input type="text" id="attachment" placeholder="File to attach here..." style="font-family: Arial, sans-serif; font-size: 10px; width: 300px;" >
+          <input type="text" id="datauri" style="display: none;">
         </div>
 
 
@@ -392,6 +393,7 @@
         const dstyle    = document.getElementById('dstyle').value;
         const dmodel    = document.getElementById('dmodel').value;
         const attach    = document.getElementById("attachment").value;
+        const datauri    = document.getElementById("datauri").value;
 
         var msgInput = document.getElementById('msgSend');
         var message = msgInput.value.trim();
@@ -412,44 +414,57 @@
 
             if (value) {
               
+              let htmlResp        = "";
+              let userMessage     = "";
+              let sophiaMessage   = "";
+
               //------------------
               if(key ==="model" ){
 
                 document.getElementById('dmodel').value = value;
 
-                messageElement.classList.add('paper-area');
-                messageElement.innerHTML = `🌟 <b>You</b><br>${message}`;
-                chatMessages.appendChild(elemSpacer);
-                chatMessages.appendChild(messageElement);
-
-                const htmlResp = `Setting the model to ${value}.`;
-                replyElement.classList.add('sophia-area');
-                replyElement.innerHTML = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
-                chatMessages.appendChild(elemLine);
-                chatMessages.appendChild(replyElement);
-
-                chatContainer.scrollTop = chatMessages.scrollHeight;
-
-                btnSend.style.display = 'inline-block';
-                loadingIcon.classList.add('hidden');  
+                userMessage     = `🌟 <b>You</b><br>${message}`;
+                htmlResp        = `Setting the model to ${value}.`;
+                sophiaMessage   = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
 
               };
               //------------------
 
-            } else {
+              messageElement.classList.add('paper-area');
+              messageElement.innerHTML = userMessage;
+              chatMessages.appendChild(elemSpacer);
+              chatMessages.appendChild(messageElement);
+
+              //const htmlResp = `Setting the model to ${value}.`;
+              replyElement.classList.add('sophia-area');
+              replyElement.innerHTML = sophiaMessage;
+              chatMessages.appendChild(elemLine);
+              chatMessages.appendChild(replyElement);
+
+              chatContainer.scrollTop = chatMessages.scrollHeight;
+
+              btnSend.style.display = 'inline-block';
+              loadingIcon.classList.add('hidden');  
+
+            //} else {
 
             };
 
           } else {
 
             // Single command
+            let specialCommand = ""; 
             if(message ==="::quit"){
-              messageElement.classList.add('paper-area');
-              messageElement.innerHTML = `🌟 <b>You</b><br>${message}. You are requesting to terminate chatting to me.`;
-              chatMessages.appendChild(elemSpacer);
-              chatMessages.appendChild(messageElement);
+              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to terminate chatting to me.`;
+            };
+            if(message ==="::clear"){
+              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to clear history.`;
             };
 
+            messageElement.classList.add('paper-area');
+            messageElement.innerHTML = specialCommand;
+            chatMessages.appendChild(elemSpacer);
+            chatMessages.appendChild(messageElement);
             btnSend.style.display = 'inline-block';
             loadingIcon.classList.add('hidden');  
 
@@ -478,7 +493,7 @@
           // Clear the input field after sending the message
           msgInput.value = '';
 
-          const params = { message, expertise, dstyle, dmodel, attach };
+          const params = { message, expertise, dstyle, dmodel, attach, datauri };
           ipcRenderer.send('req-ai-answer', params );
 
         };
@@ -514,17 +529,22 @@
       });
 
       // const Swal = require('sweetalert2');
-      ipcRenderer.on('selected-file', (event, path) => {
+      ipcRenderer.on('selected-file', (event, fileInfo ) => {
 
+        const { filePath, dataUri } = fileInfo;
         //console.log('Selected file:', path);
         //alert(path);
         Swal.fire({
             title: 'File Dialog',
-            text: 'File ' + path + ' has been selected!',
+            text: 'File ' + filePath + ' has been selected!',
             icon: 'success',
         });
 
-        document.getElementById("attachment").value  = path ;
+        //Setup the right values
+        const imageModel = process.env.AI_IMAGE_MODEL || 'llava';
+        document.getElementById("attachment").value   = filePath ;
+        document.getElementById("datauri").value      = dataUri ;
+        document.getElementById("dmodel").value       = imageModel ;
 
       });
 

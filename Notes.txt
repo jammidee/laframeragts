@@ -54,6 +54,12 @@ npm install @fortawesome/fontawesome-free --save 03/26/2024
 npm install bootstrap --save 03/26/2024
 npm install highlight --save 03/26/2024
 
+npm install datauri --save 03/27/2024
+
+npm install langchain --save 03/27/2024
+npm install chromadb --save 03/27/2024
+npm install @langchain/community --save 03/27/2024
+
 GIT - G1thUUb@!!M3
 ---
 
@@ -83,4 +89,17 @@ INSTALLING ASAR
 npm -g install --engine-strict @electron/asar
 View ASAR:
 asar list app.asar
+
+INSTALLING CHROMADB
+===================
+Download Python for Windows, install
+pip install chromadb (make sure to run this on CMD Admmin mode)
+
+During development, run ladb.bat on another terminal
+ladb.bat
+
+Exclude in the .gitignore
+# Chroma Database
+chroma.log
+db_chrome/
 

@@ -33,12 +33,19 @@ const machineId             = require('node-machine-id');
 const { exec, execSync }    = require('child_process');
 const mysql                 = require('mysql2/promise');
 const chalk                 = require('chalk');
+const datauri               = require('datauri');
 
 import os                     from 'os';
 import axios                  from 'axios';
 import marked                 from 'marked';
 
 import ollama                 from './libs/SimplyOllama';
+
+import {OllamaEmbeddings}     from "@langchain/community/embeddings/ollama"
+import { Ollama }             from "@langchain/community/llms/ollama";
+import { Chroma }             from "@langchain/community/vectorstores/chroma";
+import {PromptTemplate}       from "@langchain/core/prompts";
+import {StringOutputParser}   from "@langchain/core/output_parsers"
 
 //Custom library
 import libt                   from './libs/lalibtools';
@@ -344,26 +351,35 @@ const createWindow = (): void => {
   //=============================================================  
 
   // Add this part to handle the "Open File" functionality
-  ipcMain.on('main-open-file-dialog', function (event) {
-    dialog.showOpenDialog(mainWindow, {
-      properties: ['openFile'],
-      filters: [
-        { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
-        { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
-        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
-        { name: 'All Files', extensions: ['*'] },
-      ],
-    })
-    .then(result => {
+  ipcMain.on('main-open-file-dialog', async function (event) {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+          { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
+          { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
+          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      });
+  
       if (!result.canceled) {
-        event.sender.send('selected-file', result.filePaths[0]);
+
+        const filePath  = result.filePaths[0];
+        const parts     = await datauri(filePath);
+        const dataUri   = parts.split(',')[1];
+
+  
+        event.sender.send('selected-file', { filePath, dataUri });
+
       } else {
         console.log('No selected file!');
-      }
-    })
-    .catch(err => {
-      console.error(err);
-    });
+      };
+
+    } catch (error) {
+      console.error('Error opening file:', error);
+    };
+
   });
 
   // Handle the login process after local initialization
@@ -865,7 +881,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   let modelResponse = "";
 
-  const { message, expertise, dstyle, dmodel } = params;
+  const { message, expertise, dstyle, dmodel, attach, datauri } = params;
 
   console.log(`The model is ${dmodel}`);
   let persona: any = [];
@@ -938,7 +954,13 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     persona.push({ "role": "system", "content": "Always treat greetings as happy and excited. Use happy and exciting words." });
   }
   
-  persona.push({ "role": "user", "content": message });
+  if( model === process.env.AI_MASTER_MODEL ){
+    persona.push({ "role": "user", "content": message, "images": [ datauri ] });
+  } else {
+    //persona.push({ "role": "user", "content": message });
+    persona.push({ "role": "user", "content": message, "images": [ datauri ] });
+  };
+  
 
   let chatConfig = { 
     "model": model,
