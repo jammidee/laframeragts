@@ -1,7 +1,7 @@
 {
   "name": "lakuboragts",
   "productName": "lakuboragts",
-  "version": "1.5.355",
+  "version": "1.5.368",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
@@ -54,10 +54,12 @@
     "dotenv": "^16.4.5",
     "electron-squirrel-startup": "^1.0.0",
     "highlight": "^0.2.4",
+    "jsonwebtoken": "^9.0.2",
     "langchain": "^0.1.30",
     "marked": "^12.0.1",
     "mysql2": "^3.9.2",
     "node-machine-id": "^1.1.12",
+    "pdf-lib": "^1.17.1",
     "prettier": "^3.2.5",
     "sweetalert2": "^11.10.7"
   }

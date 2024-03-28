@@ -382,6 +382,85 @@ const createWindow = (): void => {
 
   });
 
+  // Add this part to handle the "Open File" functionality
+  ipcMain.on('main-open-embed-dialog', async function (event) {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+          { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
+          { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
+        ],
+      });
+  
+      if (!result.canceled) {
+
+        const filePath  = result.filePaths[0];
+        const parts     = await datauri(filePath);
+        const dataUri   = parts.split(',')[1];
+
+        processEmbeddings( filePath );
+
+        //event.sender.send('selected-embed-file', { filePath, dataUri });
+
+      } else {
+        console.log('No selected file!');
+      };
+
+    } catch (error) {
+      console.error('Error opening file:', error);
+    };
+
+  });
+
+  async function processEmbeddings( filePath:string ) {
+
+    console.log("Error loading PDF document:");
+
+    const fs = require('fs');
+    const { PDFDocument } = require('pdf-lib');
+
+    // Function to load a PDF document
+    async function loadPDFDocument(pdfFilePath:string) {
+        try {
+            const pdfBytes = fs.readFileSync(pdfFilePath);
+            const pdfDoc = await PDFDocument.load(pdfBytes);
+            return pdfDoc;
+        } catch (error) {
+            console.error("Error loading PDF document:", error);
+            throw error;
+        }
+    }
+    
+    // Function to split text into chunks
+    function splitTextIntoChunks(text:string, chunkSize:number, overlap:number) {
+        const chunks = [];
+        for (let i = 0; i < text.length; i += chunkSize - overlap) {
+            chunks.push(text.slice(i, i + chunkSize));
+        }
+        return chunks;
+    }    
+
+    // Use the filePath parameter passed to the function
+    const pdfFilePath = filePath;
+    const pdfDocument = await loadPDFDocument(pdfFilePath);
+    const pages = [];
+    for (let i = 0; i < pdfDocument.numPages; i++) {
+        console.log(`Page content looping`);
+        const page = await pdfDocument.getPage(i + 1);
+        const pageTextContent = await page.getTextContent();
+        console.log(`Page content ${pageTextContent}`);
+        const pageText = pageTextContent.items.map((item: { str: string }) => item.str).join('');
+        pages.push(pageText);
+    }
+
+    const chunkSize = 1000;
+    const overlap = 100;
+    const docs = pages.map(page => splitTextIntoChunks(page, chunkSize, overlap));
+
+    //console.log(docs);
+  };
+
   // Handle the login process after local initialization
   ipcMain.on('request-to-login', function (event) {
 

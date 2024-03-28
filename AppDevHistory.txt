@@ -10,6 +10,13 @@ Framework Design: 			Jammi Dee
 Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
+03/28/2024  - Added icon for embeddings
+            - Added process for embeddings
+            - Added library npm jsonwebtoken
+            - Testing package distribution
+            - Added pdf-lib library
+            - 
+
 03/27/2024  - Fixed the UI more
             - improve the chat logic with special commands improvements.
             - Added library install datauri
