@@ -34,12 +34,16 @@ const { exec, execSync }    = require('child_process');
 const mysql                 = require('mysql2/promise');
 const chalk                 = require('chalk');
 const datauri               = require('datauri');
+const pdf                   = require('pdf-parse');
 
 import os                     from 'os';
 import axios                  from 'axios';
 import marked                 from 'marked';
 
 import ollama                 from './libs/SimplyOllama';
+
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 import {OllamaEmbeddings}     from "@langchain/community/embeddings/ollama"
 import { Ollama }             from "@langchain/community/llms/ollama";
@@ -413,53 +417,94 @@ const createWindow = (): void => {
 
   });
 
-  async function processEmbeddings( filePath:string ) {
+  async function processEmbeddings(filePath: string): Promise<void> {
 
-    console.log("Error loading PDF document:");
+    const loader = new PDFLoader( filePath, {
+      parsedItemSeparator: "",
+    });
+    const docs = await loader.load();
 
-    const fs = require('fs');
-    const { PDFDocument } = require('pdf-lib');
+    console.log({ docs });
 
-    // Function to load a PDF document
-    async function loadPDFDocument(pdfFilePath:string) {
-        try {
-            const pdfBytes = fs.readFileSync(pdfFilePath);
-            const pdfDoc = await PDFDocument.load(pdfBytes);
-            return pdfDoc;
-        } catch (error) {
-            console.error("Error loading PDF document:", error);
-            throw error;
-        }
-    }
-    
-    // Function to split text into chunks
-    function splitTextIntoChunks(text:string, chunkSize:number, overlap:number) {
-        const chunks = [];
-        for (let i = 0; i < text.length; i += chunkSize - overlap) {
-            chunks.push(text.slice(i, i + chunkSize));
-        }
-        return chunks;
-    }    
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 200,
+    });
 
-    // Use the filePath parameter passed to the function
-    const pdfFilePath = filePath;
-    const pdfDocument = await loadPDFDocument(pdfFilePath);
-    const pages = [];
-    for (let i = 0; i < pdfDocument.numPages; i++) {
-        console.log(`Page content looping`);
-        const page = await pdfDocument.getPage(i + 1);
-        const pageTextContent = await page.getTextContent();
-        console.log(`Page content ${pageTextContent}`);
-        const pageText = pageTextContent.items.map((item: { str: string }) => item.str).join('');
-        pages.push(pageText);
-    }
+    const splitDocs = await textSplitter.splitDocuments(docs);
+    console.log({ splitDocs });
 
-    const chunkSize = 1000;
-    const overlap = 100;
-    const docs = pages.map(page => splitTextIntoChunks(page, chunkSize, overlap));
+    const embeddings = new OllamaEmbeddings({
+      model: process.env.AI_EMBED_MODEL, // default value
+      baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`, // default value
+      requestOptions: {
+        useMMap: true,
+        numThread: 6,
+        numGpu: 1,
+      },
+    });
 
-    //console.log(docs);
+    const documents = ["Hello World!", "Bye Bye"];
+    const documentEmbeddings = await embeddings.embedDocuments( documents );
+
+    console.log(documentEmbeddings);
+
+    const vectorStore = await Chroma.fromDocuments(docs, embeddings, {
+      collectionName: "a-test-collection",
+      url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
+      collectionMetadata: {
+        "hnsw:space": "cosine",
+      }, // Optional, can be used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
+    });    
+
+    const response = await vectorStore.similaritySearch("hello", 1);
+
+    console.log(response);
+
   };
+
+  // async function processEmbeddings(filePath: string): Promise<void> {
+
+  //   // Function to split text into chunks
+  //   function splitTextIntoChunks(text: string, chunkSize: number, overlap: number): string[] {
+  //       const chunks: string[] = [];
+  //       for (let i = 0; i < text.length; i += chunkSize - overlap) {
+  //           chunks.push(text.slice(i, i + chunkSize));
+  //       }
+  //       return chunks;
+  //   }
+
+  //   // Function to extract text content from each page
+  //   async function extractTextFromPages(dataBuffer: Buffer): Promise<string[]> {
+  //       const data = await pdf(dataBuffer);
+  //       const pagesText: string[] = [];
+  //       for (let i = 0; i < data.numpages; i++) {
+  //           const pageData = await pdf(dataBuffer, { pages: [i + 1] });
+  //           pagesText.push(pageData.text);
+  //       }
+  //       return pagesText;
+  //   }
+
+  //   // Use the filePath parameter passed to the function
+  //   const pdfBuffer = fs.readFileSync(filePath);
+
+  //   try {
+  //       const pagesText = await extractTextFromPages(pdfBuffer);
+  //       pagesText.forEach((pageText, index) => {
+  //           console.log(`Page ${index + 1}:`, pageText);
+  //       });
+
+  //       // Split text into chunks for each page
+  //       const chunkSize = 1000;
+  //       const overlap = 100;
+  //       const docs = pagesText.map(pageText => splitTextIntoChunks(pageText, chunkSize, overlap));
+  //       // console.log(docs);
+  //   } catch (error) {
+  //       console.error("Error processing PDF document:", error);
+  //       throw error;
+  //   };
+
+  // };
 
   // Handle the login process after local initialization
   ipcMain.on('request-to-login', function (event) {

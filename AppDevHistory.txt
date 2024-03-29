@@ -10,6 +10,12 @@ Framework Design: 			Jammi Dee
 Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
+03/29/2024  - Added pad-parse library
+            - Successfully extracted text using pdf-parse
+            - Successfully loaded document using langchain
+            - Successfully split text using langchain
+            - 
+
 03/28/2024  - Added icon for embeddings
             - Added process for embeddings
             - Added library npm jsonwebtoken
