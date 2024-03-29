@@ -10,10 +10,16 @@ Framework Design: 			Jammi Dee
 Developed / Programmed by : Joel Margate Damaso aka Jammi Dee
 Tested / QA by:				Jammi Dee
 
+Todo:
+            - Resolve timeout issue for large embeddings
+            -
+
 03/29/2024  - Added pad-parse library
             - Successfully extracted text using pdf-parse
             - Successfully loaded document using langchain
             - Successfully split text using langchain
+            - Successfully run end to end the embeddings
+            - Updated the README.md
             - 
 
 03/28/2024  - Added icon for embeddings

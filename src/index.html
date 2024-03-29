@@ -318,6 +318,7 @@
         const dmodelSelect = document.getElementById("dmodel");
         dmodelSelect.innerHTML = "";
         dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
+        dmodelSelect.innerHTML += `<option value="embeddings">Embeddings</option>`;
         models.forEach(model => {
 
           const modelName = model.model.split(":")[0];
@@ -497,7 +498,11 @@
           msgInput.value = '';
 
           const params = { message, expertise, dstyle, dmodel, attach, datauri };
-          ipcRenderer.send('req-ai-answer', params );
+          if(dmodel === "embeddings"){
+            ipcRenderer.send('req-ai-use-embedding', params );
+          } else {
+            ipcRenderer.send('req-ai-answer', params );
+          };
 
         };
 
@@ -554,17 +559,32 @@
 
       //Embeddings script
       document.getElementById("embeddings").addEventListener("click", function() {
-        
+
         ipcRenderer.send('main-open-embed-dialog', 'OK');
+
+      });
+
+      ipcRenderer.on('processing-embeddings', (event, fileInfo ) => {
+        Swal.fire({
+            title: 'Please wait',
+            text: 'Processing embeddings...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
       });
 
       ipcRenderer.on('selected-embed-file', (event, fileInfo ) => {
 
+        Swal.close();
+
         const { filePath, dataUri } = fileInfo;
         Swal.fire({
-            title: 'File Dialog',
-            text: 'File ' + filePath + ' has been selected!',
+            title: 'Embedding STatus',
+            text: 'File ' + filePath + ' has been successfully embedded!',
             icon: 'success',
         });
 

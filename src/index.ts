@@ -36,6 +36,9 @@ const chalk                 = require('chalk');
 const datauri               = require('datauri');
 const pdf                   = require('pdf-parse');
 
+//This is not langchain
+const { ChromaClient }      = require("chromadb");
+
 import os                     from 'os';
 import axios                  from 'axios';
 import marked                 from 'marked';
@@ -403,9 +406,11 @@ const createWindow = (): void => {
         const parts     = await datauri(filePath);
         const dataUri   = parts.split(',')[1];
 
-        processEmbeddings( filePath );
+        event.sender.send('processing-embeddings' );
 
-        //event.sender.send('selected-embed-file', { filePath, dataUri });
+        await processEmbeddings( filePath );
+
+        event.sender.send('selected-embed-file', { filePath, dataUri });
 
       } else {
         console.log('No selected file!');
@@ -427,8 +432,9 @@ const createWindow = (): void => {
     console.log({ docs });
 
     const textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkSize: parseInt(process.env.VEC_CHUNK) ?? 1000,
+      separators: ['\n\n','\n',' ',''],
+      chunkOverlap: parseInt(process.env.VEC_CHUNK_OVERLAP) ?? 200,
     });
 
     const splitDocs = await textSplitter.splitDocuments(docs);
@@ -444,22 +450,31 @@ const createWindow = (): void => {
       },
     });
 
-    const documents = ["Hello World!", "Bye Bye"];
-    const documentEmbeddings = await embeddings.embedDocuments( documents );
+    async function deleteCollection() {
+      try {
 
-    console.log(documentEmbeddings);
+          const chroma = new ChromaClient({ path: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}` });
+          await chroma.reset();
+          
+          console.log("Collection deleted successfully.");
+      } catch (error) {
+          console.error("Error deleting collection:", error);
+      }
+    };
 
-    const vectorStore = await Chroma.fromDocuments(docs, embeddings, {
-      collectionName: "a-test-collection",
+    await deleteCollection();
+
+    //Process embeddings
+    const vectorStore = await Chroma.fromDocuments(splitDocs , embeddings, {
+      collectionName: "sophia-collection",
       url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
-      collectionMetadata: {
-        "hnsw:space": "cosine",
-      }, // Optional, can be used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
-    });    
+      collectionMetadata: { "hnsw:space": "cosine", },
+    });
 
-    const response = await vectorStore.similaritySearch("hello", 1);
+    // Search for the most similar document - testing purposes only
+    const vectorStoreResponse = await vectorStore.similaritySearch("What is langchain", 1);
 
-    console.log(response);
+    console.log("Printing docs after similarity search --> ",vectorStoreResponse);
 
   };
 
@@ -1018,6 +1033,13 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     model = dmodel;
   };
 
+  // //Use this for embeddings
+  // if( dmodel === 'embeddings'){
+  //   model = process.env.AI_MASTER_EMBED;
+  // } else {
+  //   model = dmodel;
+  // };
+
   //Define Expertise
   if (expertise === 'LINGUIST') {
     persona.push({ "role": "system", "content": "You are a linguist expert." });
@@ -1078,11 +1100,13 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     persona.push({ "role": "system", "content": "Always treat greetings as happy and excited. Use happy and exciting words." });
   }
   
-  if( model === process.env.AI_MASTER_MODEL ){
+  console.log(`What model ${model}`);
+  if( model === process.env.AI_IMAGE_MODEL ){
+    console.log(`Usin image model ${model}`);
     persona.push({ "role": "user", "content": message, "images": [ datauri ] });
   } else {
     //persona.push({ "role": "user", "content": message });
-    persona.push({ "role": "user", "content": message, "images": [ datauri ] });
+    persona.push({ "role": "user", "content": message });
   };
   
 
@@ -1194,6 +1218,111 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   };
 
   invokeLLM(chatConfig);
+
+});
+
+ipcMain.on('req-ai-use-embedding', async (event, params) => {
+
+  const { message, expertise, dstyle, dmodel, attach, datauri } = params; 
+  console.log(`User is requesting embeddings... processing...`);
+
+  const embeddings = new OllamaEmbeddings({
+    model: process.env.AI_EMBED_MODEL, // default value
+    baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`, // default value
+    requestOptions: {
+      useMMap: true,
+      numThread: 6,
+      numGpu: 1,
+    },
+  });
+
+  const ollamaLlm = new Ollama({
+    baseUrl:`http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+    model:process.env.AI_EMBED_MODEL
+  });
+
+  //Utility function to combine documents
+  function combineDocuments(docs:any) {
+    return docs.map((doc:any) => doc.pageContent).join('\n\n');
+  }
+
+  //Get instance of vector store
+  //We will connect to langchainData collection
+  const vectorStore = await Chroma.fromExistingCollection(
+    embeddings, { collectionName: "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
+  );
+
+  //Get retriever
+  const chromaRetriever = vectorStore.asRetriever();
+  //const userQuestion = "What are the three modules provided by langchain?";
+  const userQuestion = message;
+
+  //Create a prompt tempalate and convert the user question into standalone question
+  const simpleQuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question ${userQuestion}`);
+
+  const simpleQuestionChain = simpleQuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
+
+  const documents = await simpleQuestionChain.invoke({
+    userQuestion: userQuestion
+  });
+
+  //Combine the results into a string
+  const combinedDocs = combineDocuments(documents);
+
+  const questionTemplate = PromptTemplate.fromTemplate(`
+    You are a langchain instructor who is good at answering questions raised by new developers or users. Answer the below question using the context.
+    Strictly use the context and answer in crisp and point to point.
+    <context>
+    {context}
+    </context>
+
+    question: ${userQuestion}
+  `);
+
+  const answerChain = questionTemplate.pipe(ollamaLlm);
+
+  const llmResponse = await answerChain.invoke({
+    context: combinedDocs,
+    userQuestion: userQuestion
+  });
+
+  console.log("Printing llm response --> ",llmResponse);
+
+  function unescapeHTML(html:string) {
+    return html.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  };
+
+  function parseCodeBlocks(input: string): string {
+
+    // Check if the input string contains <code> tags
+    if (!/<code>.*?<\/code>/.test(input)) {
+        // If no <code> tags are found, return the input string as is
+        return input;
+    };
+
+    // Define the regular expression pattern to match text enclosed by <code> tags
+    const pattern = /<code>(.*?)<\/code>/g;
+
+    // Replace matches with <pre> tags containing styled code
+    const result = input.replace(pattern, (_, code) => `<pre class="code-block">${unescapeHTML(code)}</pre>`);
+
+    return result;
+  };
+
+  let props = { 
+    "model": process.env.AI_EMBED_MODEL,
+    "messages": 'Hi', 
+    "temperature": 0.7, 
+    "max_tokens": -1,
+    "stream": true
+  };
+
+  let htmlResp = llmResponse.replace(/\n/g, '<br>');
+  htmlResp = await marked.parse(htmlResp);
+  htmlResp = parseCodeBlocks(htmlResp);
+
+  const dataResp = { htmlResp, props }; 
+  mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
 });
 
