@@ -13,6 +13,9 @@ Tested / QA by:				Jammi Dee
 Todo:
             - Resolve timeout issue for large embeddings
             - Added ollama library
+            - Added cohere-ai lirary as a dependency by langchain
+            - Added history array in SimplyOllama
+            - Added ollama library in SimplOllama
             - 
 
 03/30/2024  - fixed the collection delete error

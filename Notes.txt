@@ -60,6 +60,7 @@ npm install jsonwebtoken --save 03/28/2024
 npm install langchain --save 03/27/2024
 npm install chromadb --save 03/27/2024
 npm install @langchain/community --save 03/27/2024
+npm install cohere-ai --save 03/30/2024
 
 npm install pdf-lib --save 03/28/2024
 npm install pdf-parse --save 03/28/2024

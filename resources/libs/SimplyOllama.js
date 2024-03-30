@@ -22,7 +22,8 @@
  *
 */
 
-const axios = require('axios');
+const axios     = require('axios');
+const ollama    = require('ollama');
 
 const API_ORIGIN    = 'http://127.0.0.1:11434';
 const API_PORT      = '11434';
@@ -36,6 +37,7 @@ class SimplyOllama {
     constructor(baseURL) {
         this.baseURL    = baseURL || `${API_ORIGIN}:${API_PORT}`;
         this.subURL     = `${API_VERSION}`;
+        this.history    = [];
     }
 
     async generate(request) {
@@ -135,6 +137,14 @@ class SimplyOllama {
     setSubURL(suburl) {
         this.subURL = suburl;
     };
+
+    addToHistory(item) {
+        this.history.push(item);
+    }
+
+    clearHistory() {
+        this.history = [];
+    }
 
 };
 
