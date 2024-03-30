@@ -12,7 +12,12 @@ Tested / QA by:				Jammi Dee
 
 Todo:
             - Resolve timeout issue for large embeddings
-            -
+            - Added ollama library
+            - 
+
+03/30/2024  - fixed the collection delete error
+            - Added Collection_name in the environment
+            - 
 
 03/29/2024  - Added pad-parse library
             - Successfully extracted text using pdf-parse

@@ -64,11 +64,12 @@ Sophia uses the following technologies to implement:
 1. **Master Model** This is the default model usually this is set to llama2
 2. **Image Model** This is the model to be used when analyzing images. Usually is set to llava
 3. **Embedding Model** This is the model that will handle embeddings. Usually is set to llama2.
-4. **Other Model** User can select them for their own use.
+4. **Other Models** User can select them for their own use.
 
 
 ## Operating Modes
 
 Sophia operating in 2 modes:
 1. **Standalone Mode** This mode all the models, database and vector database/embeddings are located in one machine. This requires a powerful machine because it will house the require models in the back-end. These models are the master models, image model and embed mode.
+In standalone mode, all the heavy lifting is on the machine where Sophia is installed.
 2. **Distributed Mode** This mode allows user to distribute models to different machines thus improving the performance.

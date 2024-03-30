@@ -447,13 +447,14 @@ const createWindow = (): void => {
         useMMap: true,
         numThread: 6,
         numGpu: 1,
+        //keepAlive: "30m",
       },
     });
 
     async function deleteCollection() {
       try {
 
-          const chroma = new ChromaClient({ path: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}` });
+          const chroma = new ChromaClient({ path: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}` });
           await chroma.reset();
           
           console.log("Collection deleted successfully.");
@@ -466,7 +467,7 @@ const createWindow = (): void => {
 
     //Process embeddings
     const vectorStore = await Chroma.fromDocuments(splitDocs , embeddings, {
-      collectionName: "sophia-collection",
+      collectionName: process.env.COLLECTION_NAME || "sophia-collection",
       url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
       collectionMetadata: { "hnsw:space": "cosine", },
     });
@@ -1249,7 +1250,7 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
   //Get instance of vector store
   //We will connect to langchainData collection
   const vectorStore = await Chroma.fromExistingCollection(
-    embeddings, { collectionName: "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
+    embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
   );
 
   //Get retriever
