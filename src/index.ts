@@ -363,10 +363,10 @@ const createWindow = (): void => {
       const result = await dialog.showOpenDialog(mainWindow, {
         properties: ['openFile'],
         filters: [
-          { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
-          { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
+          //{ name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
+          //{ name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
           { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif'] },
-          { name: 'All Files', extensions: ['*'] },
+          //{ name: 'All Files', extensions: ['*'] },
         ],
       });
   
@@ -395,8 +395,9 @@ const createWindow = (): void => {
       const result = await dialog.showOpenDialog(mainWindow, {
         properties: ['openFile'],
         filters: [
-          { name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
-          { name: 'Document Files', extensions: ['pdf', 'doc', 'docx'] },
+          //{ name: 'Text Files', extensions: ['txt', 'bat', 'scr', 'java', 'js', 'csv', 'py'] },
+          { name: 'Document Files', extensions: ['pdf', 'doc'] },
+          //{ name: 'Image Files', extensions: ['jpg', 'png'] },
         ],
       });
   
@@ -1103,7 +1104,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   
   console.log(`What model ${model}`);
   if( model === process.env.AI_IMAGE_MODEL ){
-    console.log(`Usin image model ${model}`);
+    console.log(`Using image model ${model}`);
     persona.push({ "role": "user", "content": message, "images": [ datauri ] });
   } else {
     //persona.push({ "role": "user", "content": message });
