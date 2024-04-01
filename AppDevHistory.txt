@@ -26,6 +26,9 @@ Todo:
             - Added history processing in the prompt to create a context
             - Added function to count the number of token
             - Change images in the icons list appropriately
+            - Added 'clear' direct command.
+            - Added 'quit' direct command.
+            - Added replacement functions to iconize emotions.
             - 
 
 03/30/2024  - fixed the collection delete error

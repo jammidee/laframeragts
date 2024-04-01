@@ -1038,38 +1038,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   let modelResponse = "";
 
-  const { message, expertise, dstyle, dmodel, attach, datauri, cmd } = params;
-
-  //========================
-  // Direct Command Section
-  //========================
-  let props = { 
-    "model": process.env.AI_EMBED_MODEL,
-    "messages": 'Direct command to application', 
-    "temperature": 0.1972, 
-    "max_tokens": -1,
-    "stream": true
-  };  
-  if( cmd === "clear"){
-    const htmlResp = "Chat history has been cleared!";
-    history = [];
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
-    return;
-  };
-
-  //Actually not used
-  if( cmd === "quit"){
-    const htmlResp = "Chat history has been cleared!";
-    history = [];
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'quit-to-index');
-    return;
-  };
-
-  //============
-  // AI Section
-  //============
+  const { message, expertise, dstyle, dmodel, attach, datauri } = params;
 
   console.log(`The model is ${dmodel}`);
   let persona: any = [];
@@ -1377,7 +1346,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
 ipcMain.on('req-ai-use-embedding', async (event, params) => {
 
-  const { message, expertise, dstyle, dmodel, attach, datauri, cmd } = params; 
+  const { message, expertise, dstyle, dmodel, attach, datauri } = params; 
   console.log(`User is requesting embeddings... processing...`);
 
   const embeddings = new OllamaEmbeddings({

@@ -60,10 +60,10 @@
             <!-- <p id="machid"><i class="fas fa-atom"></i>MACH ID </p> -->
           </div>
         </div>
+        <br>
 
         <div>
           <div id="hightlight" class="paper-area">
-            <br>
             <div>
               <h4>💖 Hello World!</h4>
               <p>Welcome to your ElectronJS Chatbot boilerplate by Lalulla.</p>
@@ -81,15 +81,15 @@
                     <p>👍 Thumbs Up: Positive gesture or agreement</p>
                   </td>
                   <td>
-                    <p>🌈 Rainbow: Diversity, inclusivity, or positivity.</p>
+                    <p>🌈 Rainbow: Diversity, inclusivity, or positivity</p>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <p>🔥 Fire: Love, affection, or approval.</p>
+                    <p>🔥 Red Heart: Love, affection, or approval.</p>
                   </td>
                   <td>
-                    <p>💖 Heart: Love, affection, or care.</p>
+                    <p>💖 Welcome to your Electron application.</p>
                   </td>
                 </tr>
               </table>
@@ -104,39 +104,6 @@
           </div>
         </div>
 
-        <div>
-          <div id="helparea" class="paper-area">
-            <br>
-            <div>
-              <h4>💖 Some help for you.</h4>
-              <p>Some of the tricks with Sophia...</p>
-              <table>
-                <tr>
-                  <td>
-                    <p>🌟 ::clear - clear context history</p>
-                  </td>
-                  <td>
-                    <p>🔥 ::quit - exit Sophia</p>
-                  </td>
-                  <td>
-                    <p>👍 ::model=[modelname] - set the model</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <p>🌟 ::expertise=[Expert Name]</p>
-                  </td>
-                  <td>
-                    <p>🔥 ::style=[style]</p>
-                  </td>
-                  <td>
-                    <p>🌈 Just smile and be happy!</p>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </div>
-        </div>
         
         
       </div> <!-- Chat messages -->
@@ -468,24 +435,6 @@
                 sophiaMessage   = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
 
               };
-              if(key ==="expertise" ){
-
-                document.getElementById('ddexpert').value = value;
-
-                userMessage     = `🌟 <b>You</b><br>${message}`;
-                htmlResp        = `Setting the expertise to ${value}.`;
-                sophiaMessage   = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
-
-              };
-              if(key ==="style" ){
-
-                document.getElementById('dstyle').value = value;
-
-                userMessage     = `🌟 <b>You</b><br>${message}`;
-                htmlResp        = `Setting the style to ${value}.`;
-                sophiaMessage   = `💖<b>Sophia</b> <font color="grey">( User talking... )</font><br> ${htmlResp}`;
-
-              };
               //------------------
 
               messageElement.classList.add('paper-area');
@@ -510,18 +459,13 @@
 
           } else {
 
-            let cmd = "";
             // Single command
             let specialCommand = ""; 
             if(message ==="::quit"){
-              cmd = "quit";
               specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to terminate chatting to me.`;
-              ipcRenderer.send('quit-to-index' );
-              return;
             };
             if(message ==="::clear"){
-              cmd = "clear";
-              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to clear history. It has been cleared!`;
+              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to clear history.`;
             };
 
             messageElement.classList.add('paper-area');
@@ -530,9 +474,6 @@
             chatMessages.appendChild(messageElement);
             btnSend.style.display = 'inline-block';
             loadingIcon.classList.add('hidden');  
-
-            const params = { message, expertise, dstyle, dmodel, attach, datauri, cmd };
-            ipcRenderer.send('req-ai-answer', params );
 
           };
 
@@ -559,8 +500,7 @@
           // Clear the input field after sending the message
           msgInput.value = '';
 
-          const cmd = "";
-          const params = { message, expertise, dstyle, dmodel, attach, datauri, cmd };
+          const params = { message, expertise, dstyle, dmodel, attach, datauri };
           if(dmodel === "embeddings"){
             ipcRenderer.send('req-ai-use-embedding', params );
           } else {
@@ -573,9 +513,8 @@
 
       ipcRenderer.on('resp-ai-answer', (event, dataResp ) => {
 
-          let { htmlResp, props } = dataResp;
+          const { htmlResp, props } = dataResp;
           //alert( response );
-          htmlResp = replaceEmTags( htmlResp, replacements );
 
           var chatContainer   = document.querySelector('.chat-container');
           var replyElement    = document.createElement('div');
@@ -667,106 +606,6 @@
         alert(`Configure!`);
 
       });
-
-      function replaceEmTags(inputString, replacements) {
-        const regex = /<em>(.*?)<\/em>/gi; // Regular expression to match any <em>...</em> tag
-        return inputString.replace(regex, function(match, p1) {
-            // Check if replacement exists for the matched content inside <em>...</em>
-            if (p1 in replacements) {
-                return replacements[p1];
-            } else {
-                // If no replacement is found, keep the original content inside <em>...</em>
-                return match;
-            }
-        });
-    };
-
-    const replacements = {
-        "thoughtful look": "🤔",
-        "curious tone": "🔍",
-        "informative tone": "💡",
-        "excited expression": "😃",
-        "surprised expression": "😯",
-        "skeptical expression": "🤨",
-        "confused expression": "😕",
-        "relieved expression": "😌",
-        "puzzled look": "🧩",
-        "inspired look": "💭",
-        "serious tone": "💼",
-        "playful tone": "🎉",
-        "friendly tone": "👋",
-        "encouraging tone": "👏",
-        "motivational tone": "🌟",
-        "calm demeanor": "😌",
-        "anxious demeanor": "😬",
-        "hopeful expression": "🙏",
-        "reflective mood": "🤔💭",
-        "optimistic outlook": "😊",
-        "dreamy look": "😍",
-        "courageous tone": "🦸‍♂️",
-        "determined expression": "💪",
-        "joyful expression": "😄",
-        "bemused expression": "😶",
-        "affectionate tone": "😊❤️",
-        "baffled expression": "😵",
-        "enlightened expression": "🌟",
-        "suspicious look": "🕵️‍♂️",
-        "relaxed demeanor": "😎",
-        "eager anticipation": "😬👀",
-        "curious eyes": "👀",
-        "sincere expression": "🙏😊",
-        "inquiring look": "🤨🧐",
-        "introspective mood": "🤔💭",
-        "restless demeanor": "😬🤯",
-        "reminiscent mood": "🔙👀",
-        "insightful expression": "🤔💡",
-        "engaged expression": "🤓",
-        "contented expression": "😊💤",
-        "sympathetic demeanor": "🥺",
-        "compassionate tone": "🙏❤️",
-        "intrigued expression": "🤨🤔",
-        "doubtful expression": "🤔❓",
-        "determined demeanor": "💪👊",
-        "optimistic demeanor": "😊🤞",
-        "pensive expression": "🤔😔",
-        "amused expression": "😄😆",
-        "inquisitive expression": "🤔❓",
-        "inspiring tone": "🌟🙌",
-        "contemplative mood": "🤔🌌",
-        "ambitious demeanor": "💼💪",
-        "thought-provoking tone": "🤔💭",
-        "encouraging expression": "👏🙌",
-        "inspiring expression": "🌟🤩",
-        "reassuring tone": "🙏😊",
-        "encouraging demeanor": "👍🤗",
-        "compassionate demeanor": "🥰😌",
-        "enthusiastic expression": "😃🎉",
-        "reflective expression": "🤔💭",
-        "uplifting tone": "🌞🙌",
-        "thoughtful demeanor": "🤔👌",
-        "engaged demeanor": "🤓📚",
-        "introspective expression": "🤔💬",
-        "inspirational tone": "🌟🎤",
-        "supportive expression": "🙌😊",
-        "hopeful demeanor": "🤞😊",
-        "optimistic expression": "😊👍",
-        "cheerful demeanor": "😊🥳",
-        "insightful demeanor": "🤔🧠",
-        "compassionate expression": "🥰❤️",
-        "thought-provoking expression": "🤔💭",
-        "reassuring demeanor": "😌🙏",
-        "motivating expression": "🌟💪",
-        "uplifting demeanor": "🙌🌞",
-        "inspirational demeanor": "🌟👏",
-        "supportive demeanor": "🤗🙏",
-        "cheerful expression": "😄🎉",
-        "reassuring expression": "🤗😊",
-        "motivating demeanor": "💪🌟",
-        "uplifting expression": "🙌😃",
-        "thought-provoking demeanor": "🤔🤔",
-        "inspirational expression": "🌟😊",
-
-    };
 
 
     </script>
