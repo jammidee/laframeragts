@@ -23,7 +23,7 @@
 */
 
 const axios     = require('axios');
-const ollama    = require('ollama');
+//const ollama    = require('ollama');
 
 const API_ORIGIN    = 'http://127.0.0.1:11434';
 const API_PORT      = '11434';
@@ -31,6 +31,8 @@ const API_VERSION   = 'v1';
 
 const API_MODEL     = 'llama2';
 const API_TAG       = '';
+
+import { Ollama } from 'ollama';
 
 class SimplyOllama {
 
@@ -52,7 +54,7 @@ class SimplyOllama {
         }
     }
 
-    async chat(request) {
+    async schat(request) {
         //const url = `${this.baseURL}/chat/completions`;
         const url = `${this.baseURL}/chat`;
         
@@ -79,6 +81,59 @@ class SimplyOllama {
             //console.log(contentValue);
 
             return contentValue;
+
+
+        } catch (error) {
+            console.error('Error fetching response:', error);
+            throw error;
+        };
+    };
+
+    // let request = { 
+    //     "model": model,
+    //     "messages": persona, 
+    //     "temperature": 0.7, 
+    //     "max_tokens": -1,
+    //     "stream": true
+    // };
+
+    async chat(request) {
+
+        const ollama = new Ollama({ host: this.baseURL })
+
+        //const url = `${this.baseURL}/chat/completions`;
+        //const url = `${this.baseURL}/chat`;
+        
+        try {
+
+            const response = await ollama.chat({
+                model: request.model,
+                messages: messages,
+            })           
+
+            console.log(`--> ${JSON.stringify(response.data)}`);
+            
+            // const response = await axios.post(url, request);
+
+            // //console.log(`--> ${JSON.stringify(response.data)}`);
+
+            // const lines = response.data.split('\n').filter(Boolean);
+
+            // let contentValue = "";
+            // lines.forEach(line => {
+
+            //     console.log(`--> ${JSON.stringify(line)}`);
+            //     const jline = JSON.parse( line );
+            //     const jsonData = jline.message.content;
+            //     const jsonDone = jline.done;
+
+            //     contentValue += jsonData;
+
+            // });
+
+            // //console.log(contentValue);
+
+            // return contentValue;
 
 
         } catch (error) {

@@ -69,6 +69,7 @@ npm install ollama --save 03/30/2024
 
 
 GIT - G1thUUb@!!M3
+NPM - jammi @ yahoo jammi_dee/9+fZCT@^e/Cn56v
 ---
 
 Create .gitignore on the app root folder
