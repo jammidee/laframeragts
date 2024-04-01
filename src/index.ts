@@ -75,6 +75,16 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+//==========================
+// History Global Variables
+//==========================
+// type HistoryItem = {
+//   role: string;
+//   content: string;
+//   images: string[];
+// }
+let history: any[] = [];
+
 //==================
 // Global variables
 //==================
@@ -200,6 +210,12 @@ const tools = [
       }
   }
 ];
+
+//=======================================
+// Load the AI TOOLS list
+// const aitools = require('./aitools');
+//=======================================
+import aitools from './aitools';
 
 //Added by Jammi Dee 12/15/2023
 function generateTextTable( data: any[] ) {
@@ -1035,13 +1051,6 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     model = dmodel;
   };
 
-  // //Use this for embeddings
-  // if( dmodel === 'embeddings'){
-  //   model = process.env.AI_MASTER_EMBED;
-  // } else {
-  //   model = dmodel;
-  // };
-
   //Define Expertise
   if (expertise === 'LINGUIST') {
     persona.push({ "role": "system", "content": "You are a linguist expert." });
@@ -1101,20 +1110,80 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     persona.push({ "role": "system", "content": "If the speaker is sad or lonely, reply in symphathy. Use uplifting words." });
     persona.push({ "role": "system", "content": "Always treat greetings as happy and excited. Use happy and exciting words." });
   }
-  
-  console.log(`What model ${model}`);
-  if( model === process.env.AI_IMAGE_MODEL ){
-    console.log(`Using image model ${model}`);
-    persona.push({ "role": "user", "content": message, "images": [ datauri ] });
-  } else {
-    //persona.push({ "role": "user", "content": message });
-    persona.push({ "role": "user", "content": message });
+
+  // Get the last elements that fits the tokenlimit
+  function getElementsByTokenCount(elements:any[], tokenlimit:number) {
+    const newElements = [];
+    let totalTokens = 0;
+
+    for (const element of elements.slice().reverse()) {
+        const tokens = element.content.match(/\b\w+\b/g) || [];
+        totalTokens += tokens.length;
+        
+        if (totalTokens > tokenlimit) break;
+
+        newElements.push(element);
+    }
+
+    return newElements.reverse();
+
   };
+
+  //Count the number of tokens
+  const allPersona = persona.map( (item:{ role: string, content:string}) => item.content).join(" ");
+  const personaArray = allPersona.match(/\b\w+\b/g);
+  const personaTokens = personaArray ? personaArray.length : 0;
+  console.log(` Total persona tokens: ${personaTokens}`);
+
+  // //Use this for embeddings
+  // if( dmodel === 'embeddings'){
+  //   model = process.env.AI_MASTER_EMBED;
+  // } else {
+  //   model = dmodel;
+  // };
   
+  const allHistory = history.map( (item:{ role: string, content:string}) => item.content).join(" ");
+  const historyArray = allHistory.match(/\b\w+\b/g);
+  const historyTokens = historyArray ? historyArray.length : 0;
+  console.log(` Total history tokens: ${historyTokens}`);
+
+  if( (personaTokens + historyTokens) > 4000 ){
+    
+    //Reduce history tokens
+    const tokenNeeded = 4000 - personaTokens;
+    history = getElementsByTokenCount( history, tokenNeeded );
+
+
+  };
+
+  //=======================
+  // Add person to history
+  //=======================
+  if (history.length === 0) {
+
+    console.log(`What model ${model}`);
+    if( model === process.env.AI_IMAGE_MODEL ){
+      history.push({ "role": "user", "content": message, "images": [ datauri ] });
+    } else {
+      history.push({ "role": "user", "content": message });
+    };
+
+  } else {
+
+    console.log(`What model ${model}`);
+    if( model === process.env.AI_IMAGE_MODEL ){
+      history.push({ "role": "user", "content": message, "images": [ datauri ] });
+    } else {
+      history.push({ "role": "user", "content": message });
+    };
+
+  };
+
+  let personality = [...persona, ...history];
 
   let chatConfig = { 
     "model": model,
-    "messages": persona, 
+    "messages": personality, 
     "temperature": 0.7, 
     "max_tokens": -1,
     "stream": true
@@ -1191,11 +1260,17 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       console.log(`Running prompt...`)
 
       const response = await ollama.chat(props);
-      
+
+      //===========================
+      // Push response to history
+      //===========================
+      history.push({ "role": "assistant", "content": response });
+
       //console.log(`${response}\n`);
       let htmlResp = response.replace(/\n/g, '<br>');
           htmlResp = await marked.parse(htmlResp);
           htmlResp = parseCodeBlocks(htmlResp);
+
 
       console.log(`${htmlResp}\n`);
 

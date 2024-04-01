@@ -17,9 +17,14 @@ Todo:
             - Added history array in SimplyOllama
             - Added ollama library in SimplOllama
             - 
+
 04/01/2024  - Set the dialog to limit only to known files / documents
             - Added auto-fill of text in the message send when the image is selected.
             - Added temperature and max_tokens in the environment
+            - Added aitools.ts to hold all tools available in the system.
+            - Added history global variable
+            - Added history processing in the prompt to create a context
+            - Added function to count the number of token
             - 
 
 03/30/2024  - fixed the collection delete error
