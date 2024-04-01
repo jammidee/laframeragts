@@ -25,6 +25,7 @@ Todo:
             - Added history global variable
             - Added history processing in the prompt to create a context
             - Added function to count the number of token
+            - Change images in the icons list appropriately
             - 
 
 03/30/2024  - fixed the collection delete error

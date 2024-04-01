@@ -1133,7 +1133,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   const allPersona = persona.map( (item:{ role: string, content:string}) => item.content).join(" ");
   const personaArray = allPersona.match(/\b\w+\b/g);
   const personaTokens = personaArray ? personaArray.length : 0;
-  console.log(` Total persona tokens: ${personaTokens}`);
+  console.log(`Total persona tokens: ${personaTokens}`);
 
   // //Use this for embeddings
   // if( dmodel === 'embeddings'){
@@ -1145,7 +1145,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   const allHistory = history.map( (item:{ role: string, content:string}) => item.content).join(" ");
   const historyArray = allHistory.match(/\b\w+\b/g);
   const historyTokens = historyArray ? historyArray.length : 0;
-  console.log(` Total history tokens: ${historyTokens}`);
+  console.log(`Total history tokens: ${historyTokens}`);
 
   if( (personaTokens + historyTokens) > 4000 ){
     

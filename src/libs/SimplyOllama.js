@@ -67,6 +67,7 @@ class SimplyOllama {
     async chat(request) {
         //const url = `${this.baseURL}/chat/completions`;
         const url = `${this.baseURL}/${API_VERSION}/chat`;
+        //console.log(`--> ${url}`);
         
         try {
 
