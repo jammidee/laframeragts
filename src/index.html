@@ -206,6 +206,10 @@
           <label for="attachment">File/Url to Attach:</label>
           <input type="text" id="attachment" placeholder="File to attach here..." style="font-family: Arial, sans-serif; font-size: 10px; width: 300px;" >
           <input type="text" id="datauri" style="display: none;">
+
+          <label for="ocontext">Our of Context</label>
+          <input type="checkbox" id="ocontext" name="ocontext">
+
         </div>
 
 
@@ -429,11 +433,12 @@
         var elemLine        = document.createElement('br');
         var elemSpacer      = document.createElement('br');
 
-        const expertise = document.getElementById('ddexpert').value;
-        const dstyle    = document.getElementById('dstyle').value;
-        const dmodel    = document.getElementById('dmodel').value;
-        const attach    = document.getElementById("attachment").value;
-        const datauri    = document.getElementById("datauri").value;
+        const expertise     = document.getElementById('ddexpert').value;
+        const dstyle        = document.getElementById('dstyle').value;
+        const dmodel        = document.getElementById('dmodel').value;
+        const attach        = document.getElementById("attachment").value;
+        const datauri       = document.getElementById("datauri").value;
+        const ocontext      = document.getElementById('checkbox').checked;
 
         var msgInput = document.getElementById('msgSend');
         var message = msgInput.value.trim();
@@ -560,7 +565,7 @@
           msgInput.value = '';
 
           const cmd = "";
-          const params = { message, expertise, dstyle, dmodel, attach, datauri, cmd };
+          const params = { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd };
           if(dmodel === "embeddings"){
             ipcRenderer.send('req-ai-use-embedding', params );
           } else {
@@ -658,20 +663,12 @@
 
       document.getElementById("analyzepage").addEventListener("click", function() {
         
-        alert(`Analyze Page!!`);
-        const expertise = document.getElementById('ddexpert').value;
-        const dstyle    = document.getElementById('dstyle').value;
-        const dmodel    = document.getElementById('dmodel').value;
-        const attach    = document.getElementById("attachment").value;
-        const datauri    = document.getElementById("datauri").value;
+        //alert(`Analyze Page!!`);
+        const datauri   = document.getElementById("datauri").value;
 
         const cmd = "";
-        const params = { message, expertise, dstyle, dmodel, attach, datauri, cmd };
-        if(dmodel === "embeddings"){
-          ipcRenderer.send('req-ai-use-embedding', params );
-        } else {
-          ipcRenderer.send('req-ai-answer', params );
-        };
+        const params = { datauri, cmd };
+        ipcRenderer.send('process-page-embeddings', params );
 
       });
 

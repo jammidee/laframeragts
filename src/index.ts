@@ -46,7 +46,8 @@ import marked                 from 'marked';
 import ollama                 from './libs/SimplyOllama';
 
 import { PDFLoader }          from "langchain/document_loaders/fs/pdf";
-//import { HTMLLoader }         from "langchain/document_loaders/fs/pdf";
+
+import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 import {OllamaEmbeddings}     from "@langchain/community/embeddings/ollama"
@@ -442,6 +443,8 @@ const createWindow = (): void => {
 
   async function processEmbeddings(filePath: string): Promise<void> {
 
+    console.log(`Analyzing document ${filePath}...`);
+
     const loader = new PDFLoader( filePath, {
       parsedItemSeparator: "",
     });
@@ -484,6 +487,7 @@ const createWindow = (): void => {
     await deleteCollection();
 
     //Process embeddings
+    console.log(`Processing embeddings for ${filePath}...`);
     const vectorStore = await Chroma.fromDocuments(splitDocs , embeddings, {
       collectionName: process.env.COLLECTION_NAME || "sophia-collection",
       url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
@@ -546,15 +550,15 @@ const createWindow = (): void => {
 
     const { datauri, cmd } = params;
 
-    await processPageEmbeddings( datauri );
+    await processPageEmbeddings( "https://news.ycombinator.com/item?id=34817881" );
 
   });
 
   async function processPageEmbeddings(urlPath: string): Promise<void> {
 
-    const loader = new PDFLoader( urlPath, {
-      parsedItemSeparator: "",
-    });
+    console.log(`Analyzing page ${urlPath}...`);
+
+    const loader = new CheerioWebBaseLoader( urlPath );
     const docs = await loader.load();
 
     console.log({ docs });
@@ -594,6 +598,7 @@ const createWindow = (): void => {
     await deleteCollection();
 
     //Process embeddings
+    console.log(`Processing embeddings for ${urlPath}...`);
     const vectorStore = await Chroma.fromDocuments(splitDocs , embeddings, {
       collectionName: process.env.COLLECTION_NAME || "sophia-collection",
       url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
@@ -601,8 +606,8 @@ const createWindow = (): void => {
     });
 
     // Search for the most similar document - testing purposes only
-    const vectorStoreResponse = await vectorStore.similaritySearch("What is langchain", 1);
-
+    console.log("Processing the URL embeddings...");
+    const vectorStoreResponse = await vectorStore.similaritySearch("What is the document about", 1);
     console.log("Printing docs after similarity search --> ",vectorStoreResponse);
 
   };
@@ -1106,7 +1111,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   let modelResponse = "";
 
-  const { message, expertise, dstyle, dmodel, attach, datauri, cmd } = params;
+  const { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd } = params;
 
   //========================
   // Direct Command Section
@@ -1255,30 +1260,52 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   };
 
-  //=======================
-  // Add person to history
-  //=======================
-  if (history.length === 0) {
+  //==================================================
+  // Add persona to history if out of context = false
+  //==================================================
+  if( ocontext === false ){
 
-    console.log(`What model ${model}`);
-    if( model === process.env.AI_IMAGE_MODEL ){
-      history.push({ "role": "user", "content": message, "images": [ datauri ] });
+    if (history.length === 0) {
+
+      console.log(`What model ${model}`);
+      if( model === process.env.AI_IMAGE_MODEL ){
+        history.push({ "role": "user", "content": message, "images": [ datauri ] });
+      } else {
+        history.push({ "role": "user", "content": message });
+      };
+
     } else {
-      history.push({ "role": "user", "content": message });
+
+      console.log(`What model ${model}`);
+      if( model === process.env.AI_IMAGE_MODEL ){
+        history.push({ "role": "user", "content": message, "images": [ datauri ] });
+      } else {
+        history.push({ "role": "user", "content": message });
+      };
+
+    };
+
+  }; //if( ocontext === false )
+
+
+  // Process personality = persona + history
+  // If out of context, personality = persona + last message
+  // If in context personality = persona + history
+  let personality:any[] = [];
+
+  //If out of context
+  if( ocontext === true ){
+    personality = [...persona];
+
+    if( model === process.env.AI_IMAGE_MODEL ){
+      personality.push({ "role": "user", "content": message, "images": [ datauri ] });
+    } else {
+      personality.push({ "role": "user", "content": message });
     };
 
   } else {
-
-    console.log(`What model ${model}`);
-    if( model === process.env.AI_IMAGE_MODEL ){
-      history.push({ "role": "user", "content": message, "images": [ datauri ] });
-    } else {
-      history.push({ "role": "user", "content": message });
-    };
-
+    personality = [...persona, ...history];
   };
-
-  let personality = [...persona, ...history];
 
   let chatConfig = { 
     "model": model,
@@ -1445,7 +1472,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
 ipcMain.on('req-ai-use-embedding', async (event, params) => {
 
-  const { message, expertise, dstyle, dmodel, attach, datauri, cmd } = params; 
+  const { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd } = params; 
   console.log(`User is requesting embeddings... processing...`);
 
   const embeddings = new OllamaEmbeddings({
@@ -1480,13 +1507,11 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
   const userQuestion = message;
 
   //Create a prompt tempalate and convert the user question into standalone question
-  const simpleQuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question ${userQuestion}`);
-
+  const simpleQuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
   const simpleQuestionChain = simpleQuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
 
-  const documents = await simpleQuestionChain.invoke({
-    userQuestion: userQuestion
-  });
+  const documents = await simpleQuestionChain.invoke({ userQuestion: userQuestion });
+  console.log(`The initial result: \n\n ${documents}`);
 
   //Combine the results into a string
   const combinedDocs = combineDocuments(documents);
@@ -1495,10 +1520,11 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
     You are a langchain instructor who is good at answering questions raised by new developers or users. Answer the below question using the context.
     Strictly use the context and answer in crisp and point to point.
     <context>
-    {context}
+      {context}
     </context>
 
-    question: ${userQuestion}
+    question: {userQuestion}
+
   `);
 
   const answerChain = questionTemplate.pipe(ollamaLlm);

@@ -73,3 +73,19 @@ Sophia operating in 2 modes:
 1. **Standalone Mode** This mode all the models, database and vector database/embeddings are located in one machine. This requires a powerful machine because it will house the require models in the back-end. These models are the master models, image model and embed mode.
 In standalone mode, all the heavy lifting is on the machine where Sophia is installed.
 2. **Distributed Mode** This mode allows user to distribute models to different machines thus improving the performance.
+
+## Pre-Assigning of Models
+Sophia is a chatbot that uses multiple models during conversation. There are pre-defined models that need to be available and downloaded from Ollama befire the system can be used.
+1. **Master** - this is the main model used.
+2. **Image** - this can be assigned to any models the process images.
+3. **Embed** - the model to be used during embedding.
+
+## Prompt Composition
+1. **Persona** - is the behavior of the agent. Tne **model** used, the **expertise** and the **style** being used. These parameters can change anytime during the course of the conversation.
+2. **History** - is a collection of user query and assistant response used as part of the reference in the incoming conversation.
+
+**Personality** is the combination of Persona and History. Every time the user query, the Persona changes and the History grows.
+
+## Processing of Chat History
+1. **In Context** - all the query of the user and the reply from the agent is recorded in history to be used as a context.
+2. **Out of Context** - user query is not recorded. Same with the agent reply. This is a one-shot approach. You cannot ask the assistant based on its previous response becuase it does not keep track of it.
