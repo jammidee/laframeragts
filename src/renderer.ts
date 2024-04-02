@@ -28,6 +28,7 @@
 
 import "../resources/css/@fortawesome/fontawesome-free/css/all.min.css";
 import "../resources/css/bootstrap/dist/css/bootstrap.min.css";
+import "../resources/css/default.css";
 import './index.css';
 
 console.log('👋 This message is being logged by "renderer.js", included via webpack');

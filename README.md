@@ -73,12 +73,25 @@ Sophia operating in 2 modes:
 1. **Standalone Mode** This mode all the models, database and vector database/embeddings are located in one machine. This requires a powerful machine because it will house the require models in the back-end. These models are the master models, image model and embed mode.
 In standalone mode, all the heavy lifting is on the machine where Sophia is installed.
 2. **Distributed Mode** This mode allows user to distribute models to different machines thus improving the performance.
+You can modify the .env to adjust the **HOST:PORT** address of the pre-assigned models.
 
 ## Pre-Assigning of Models
+
 Sophia is a chatbot that uses multiple models during conversation. There are pre-defined models that need to be available and downloaded from Ollama befire the system can be used.
-1. **Master** - this is the main model used.
-2. **Image** - this can be assigned to any models the process images.
-3. **Embed** - the model to be used during embedding.
+
+1. **Master** - this is the main model used. You can select your preferred model but by default this is assigned to **llama2**.
+2. **Image** - this can be assigned to any models the process images or supports image analysis. Basically, this is assigned to llava. See AI_IMAGE_MODEL in the .env
+3. **Embed** - the model to be used during embedding. When you select **Embeddings**, the special assigned model to embeddings will be used. See **AI_EMBED_MODEL** in the .env.
+4. **Tools** - this is assigned to model that is capable of handling tooling.
+
+## Auto-Detects
+
+1. ***Personality*** - auto-detect defaults to **AI_MASTER_MODEL**.
+2. ***Expertise*** - auto-detect allows model to analyze the tone of the user.
+3. ***Style*** - auto-detect allows g=model to analyze the tone of the user.
+
+**Uploading an image** - when the user uploads an image, the **AI_IMAGE_MODEL** is selected and the chat textbox is automatically filled with a pre-defined text that is editable or customizable.
+
 
 ## Prompt Composition
 1. **Persona** - is the behavior of the agent. Tne **model** used, the **expertise** and the **style** being used. These parameters can change anytime during the course of the conversation.
@@ -89,3 +102,20 @@ Sophia is a chatbot that uses multiple models during conversation. There are pre
 ## Processing of Chat History
 1. **In Context** - all the query of the user and the reply from the agent is recorded in history to be used as a context.
 2. **Out of Context** - user query is not recorded. Same with the agent reply. This is a one-shot approach. You cannot ask the assistant based on its previous response becuase it does not keep track of it.
+
+
+
+
+# Installation
+
+## 1. Install Ollama
+Visit Ollama website and download ollama
+## 2. Download Models
+Download the models that Sophia needs. Basically these are **llama2**, **mistral**, **llava**.
+## 3. Install Python
+Download the latest python for windows.
+## 4. Install ChromaDB
+Install ChromaDB via python.
+## 5. Install Sophia
+Run Sophia installer.
+## 6. Install requirements of tooling

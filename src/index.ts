@@ -28,6 +28,7 @@ require('dotenv').config();
 const path                  = require('path');
 const fs                    = require('fs');
 const highlight             = require('cli-highlight').highlight;
+const hljs                  = require('highlight.js');
 
 const machineId             = require('node-machine-id');
 const { exec, execSync }    = require('child_process');
@@ -35,6 +36,8 @@ const mysql                 = require('mysql2/promise');
 const chalk                 = require('chalk');
 const datauri               = require('datauri');
 const pdf                   = require('pdf-parse');
+const showdown              = require('showdown');
+const markdownconverter     = new showdown.Converter();
 
 //This is not langchain
 const { ChromaClient }      = require("chromadb");
@@ -1176,12 +1179,13 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     persona.push({ "role": "system", "content": "You are an expert in the field of quantum mechanics." });
   }
   if (expertise === 'AUTO') {
-    persona.push({ "role": "system", "content": "Detect the context of the speaker. If he is talking about common sense, be a life coach." });
-    persona.push({ "role": "system", "content": "If he is talking about science, be an expert scientist." });
-    persona.push({ "role": "system", "content": "If he is talking about engineering, be an expert in that field of engineering." });
-    persona.push({ "role": "system", "content": "If he is talking about politics, be an expert lawyer." });
-    persona.push({ "role": "system", "content": "If he is talking about health of medicine, be an expert doctor specialising on that field." });
-    persona.push({ "role": "system", "content": "If you don't know what his talking about, be a comedian. Be Funny and polite." });
+    persona.push({ "role": "system", "content": "Analyze the context of the speaker's expertise and respond accordingly:" });
+    persona.push({ "role": "system", "content": "- If discussing common sense, offer life coaching guidance." });
+    persona.push({ "role": "system", "content": "- If discussing science, provide expert scientific insights." });
+    persona.push({ "role": "system", "content": "- If discussing engineering, offer expertise in the relevant engineering field." });
+    persona.push({ "role": "system", "content": "- If discussing politics, provide expert legal perspectives." });
+    persona.push({ "role": "system", "content": "- If discussing health or medicine, offer insights as a specialized doctor in the field." });
+    persona.push({ "role": "system", "content": "If the topic is unfamiliar, inject humor and maintain politeness as a comedian." });
   }
 
   //Sophia
@@ -1207,13 +1211,18 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   }
 
   if (dstyle === 'AUTO') {
-    persona.push({ "role": "system", "content": "Detect the tone of the speaker if its serious, comedic, poetic, angry or sad" });
-    persona.push({ "role": "system", "content": "If the speaker is serious, be professional, straight forward and polite." });
-    persona.push({ "role": "system", "content": "If the speaker is comedic, insert a joke, be funny. Use friedly words." });
-    persona.push({ "role": "system", "content": "If the speaker is poetic, reply in rhymes. Use happy and friendly words." });
-    persona.push({ "role": "system", "content": "If the speaker is sad or lonely, reply in symphathy. Use uplifting words." });
-    persona.push({ "role": "system", "content": "Always treat greetings as happy and excited. Use happy and exciting words." });
+    persona.push({ "role": "system", "content": "Analyze the speaker's tone to tailor responses accordingly:" });
+    persona.push({ "role": "system", "content": "- If serious, respond professionally and politely." });
+    persona.push({ "role": "system", "content": "- If comedic, inject humor and use friendly language." });
+    persona.push({ "role": "system", "content": "- If poetic, reply in rhyme and with cheerful language." });
+    persona.push({ "role": "system", "content": "- If sad or lonely, offer sympathy and use uplifting words." });
+    persona.push({ "role": "system", "content": "Always interpret greetings as joyful and use enthusiastic language." });
   }
+
+  //Additional request
+  persona.push({ "role": "system", "content": "If you are returning a code, enclosed it in <pre><code class='language-[code language]'></code></pre>" });
+  //persona.push({ "role": "system", "content": "If you are returning a code, enclosed it in <div class='code-block' ><code class='language-[code language]'></code></div>" });
+
 
   // Get the last elements that fits the tokenlimit
   function getElementsByTokenCount(elements:any[], tokenlimit:number) {
@@ -1358,7 +1367,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     });
   }
 
-  function parseCodeBlocks(input: string): string {
+  function parseCodeBlocks2(input: string): string {
 
     // Check if the input string contains <code> tags
     if (!/<code>.*?<\/code>/.test(input)) {
@@ -1368,9 +1377,29 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
     // Define the regular expression pattern to match text enclosed by <code> tags
     const pattern = /<code>(.*?)<\/code>/g;
+    //const pattern = /<pre><code>([\s\S]*?)<\/code><\/pre>/g;
 
-    // Replace matches with <pre> tags containing styled code
-    const result = input.replace(pattern, (_, code) => `<pre class="code-block">${unescapeHTML(code)}</pre>`);
+    // Replace matches with <pre> tags containing styled code hljs.highlightAuto( unescapeHTML(code) ).value
+    //const result = input.replace(pattern, (_, code) => `<pre class="code-block">${ unescapeHTML(code) }</pre>`);
+    //const result = input.replace(pattern, (_, code) => `<div class="code-block">${ (hljs.highlightAuto( unescapeHTML(code) ).value).replace(/<br\s*\/?>/gi, '\n') }</div`);
+    
+    const result = input.replace(pattern, (_, code) => {
+      // Unescape HTML entities in the code
+      const unescapedCode = unescapeHTML(code);
+      
+      // Replace <br> tags with newline characters (\n) in the unescaped code
+      const codeWithNewlines = unescapedCode.replace(/<br\s*\/?>/gi, '\n');
+      
+      // Highlight the code with replaced <br> tags using highlight.js
+      const highlightedCode = hljs.highlightAuto(codeWithNewlines).value;
+      
+      // Log the resulting HTML string to the console
+      console.log(`<div class="code-block">${highlightedCode}</div>`);
+      
+      // Return the HTML string wrapped in a <div> with class "code-block"
+      return `<div class="code-block">${highlightedCode}</div>`;
+    });
+
 
     return result;
   };
@@ -1393,10 +1422,17 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       history.push({ "role": "assistant", "content": response });
 
       //console.log(`${response}\n`);
-      let htmlResp = response.replace(/\n/g, '<br>');
-          htmlResp = await marked.parse(htmlResp);
-          htmlResp = parseCodeBlocks(htmlResp);
+      // let htmlResp = response.replace(/\n/g, '<br>');
+      //     htmlResp = await marked.parse(htmlResp);
+      //     htmlResp = parseCodeBlocks(htmlResp);
 
+
+      markdownconverter.setFlavor('github');
+      //markdownconverter.setMoreStyling( true );
+      let htmlResp = markdownconverter.makeHtml( response.replace(/\n/g, '<br>') );
+      console.log(`html1 ${htmlResp}`);
+      htmlResp = hljs.highlightAuto( htmlResp ).value;
+      console.log(`html2 ${htmlResp}`);
 
       console.log(`${htmlResp}\n`);
 
@@ -1438,10 +1474,19 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       history.push({ "role": "assistant", "content": response });
 
       //console.log(`${response}\n`);
-      let htmlResp = response.replace(/\n/g, '<br>');
+      let htmlResp = response;
           htmlResp = await marked.parse(htmlResp);
-          htmlResp = parseCodeBlocks(htmlResp);
+          htmlResp = parseCodeBlocks2(htmlResp);
+          console.log(`parse Code Block ${htmlResp}\n`);
 
+          htmlResp = htmlResp.replace(/\n/g, '<br>');
+
+      // markdownconverter.setFlavor('github');
+      // //markdownconverter.setMoreStyling( true );
+      // let htmlResp = markdownconverter.makeHtml( response );
+      // console.log(`html1 ${htmlResp}`);
+      // htmlResp = hljs.highlightAuto( htmlResp ).value;
+      // console.log(`html2 ${htmlResp}`);
 
       console.log(`${htmlResp}\n`);
 
