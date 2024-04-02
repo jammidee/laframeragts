@@ -18,6 +18,10 @@ Todo:
             - Added ollama library in SimplOllama
             - 
 
+04/02/2024  - Added process-page-embeddings for processing URL
+            - Added cheerio in the library for HTML retrieval
+            - 
+
 04/01/2024  - Set the dialog to limit only to known files / documents
             - Added auto-fill of text in the message send when the image is selected.
             - Added temperature and max_tokens in the environment

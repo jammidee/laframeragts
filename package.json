@@ -1,7 +1,7 @@
 {
   "name": "lakuboragts",
   "productName": "lakuboragts",
-  "version": "1.5.420",
+  "version": "1.5.421",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
@@ -48,6 +48,7 @@
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "chalk": "^5.3.0",
+    "cheerio": "^1.0.0-rc.12",
     "chromadb": "^1.8.1",
     "cli-highlight": "^2.1.11",
     "cohere-ai": "^7.9.0",

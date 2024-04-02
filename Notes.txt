@@ -66,7 +66,7 @@ npm install pdf-lib --save 03/28/2024
 npm install pdf-parse --save 03/28/2024
 
 npm install ollama --save 03/30/2024
-
+npm install cheerio --save 04/02/2024
 
 GIT - G1thUUb@!!M3
 NPM - jammi @ yahoo jammi_dee/9+fZCT@^e/Cn56v

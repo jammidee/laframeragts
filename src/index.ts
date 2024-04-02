@@ -45,7 +45,8 @@ import marked                 from 'marked';
 
 import ollama                 from './libs/SimplyOllama';
 
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { PDFLoader }          from "langchain/document_loaders/fs/pdf";
+//import { HTMLLoader }         from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 import {OllamaEmbeddings}     from "@langchain/community/embeddings/ollama"
@@ -538,6 +539,73 @@ const createWindow = (): void => {
   //   };
 
   // };
+
+
+  //Added by Jammi Dee 03/02/2024
+  ipcMain.on('process-page-embeddings', async function (event, params ) {
+
+    const { datauri, cmd } = params;
+
+    await processPageEmbeddings( datauri );
+
+  });
+
+  async function processPageEmbeddings(urlPath: string): Promise<void> {
+
+    const loader = new PDFLoader( urlPath, {
+      parsedItemSeparator: "",
+    });
+    const docs = await loader.load();
+
+    console.log({ docs });
+
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: parseInt(process.env.VEC_CHUNK) ?? 1000,
+      separators: ['\n\n','\n',' ',''],
+      chunkOverlap: parseInt(process.env.VEC_CHUNK_OVERLAP) ?? 200,
+    });
+
+    const splitDocs = await textSplitter.splitDocuments(docs);
+    console.log({ splitDocs });
+
+    const embeddings = new OllamaEmbeddings({
+      model: process.env.AI_EMBED_MODEL, // default value
+      baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`, // default value
+      requestOptions: {
+        useMMap: true,
+        numThread: 6,
+        numGpu: 1,
+        //keepAlive: "30m",
+      },
+    });
+
+    async function deleteCollection() {
+      try {
+
+          const chroma = new ChromaClient({ path: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}` });
+          await chroma.reset();
+          
+          console.log("Collection deleted successfully.");
+      } catch (error) {
+          console.error("Error deleting collection:", error);
+      }
+    };
+
+    await deleteCollection();
+
+    //Process embeddings
+    const vectorStore = await Chroma.fromDocuments(splitDocs , embeddings, {
+      collectionName: process.env.COLLECTION_NAME || "sophia-collection",
+      url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`,
+      collectionMetadata: { "hnsw:space": "cosine", },
+    });
+
+    // Search for the most similar document - testing purposes only
+    const vectorStoreResponse = await vectorStore.similaritySearch("What is langchain", 1);
+
+    console.log("Printing docs after similarity search --> ",vectorStoreResponse);
+
+  };
 
   // Handle the login process after local initialization
   ipcMain.on('request-to-login', function (event) {

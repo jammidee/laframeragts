@@ -203,7 +203,7 @@
         </div>
 
         <div class="dropdowns-container">
-          <label for="attachment">Attachment:</label>
+          <label for="attachment">File/Url to Attach:</label>
           <input type="text" id="attachment" placeholder="File to attach here..." style="font-family: Arial, sans-serif; font-size: 10px; width: 300px;" >
           <input type="text" id="datauri" style="display: none;">
         </div>
@@ -575,7 +575,7 @@
 
           let { htmlResp, props } = dataResp;
           //alert( response );
-          htmlResp = replaceEmTags( htmlResp, replacements );
+          //htmlResp = replaceEmTags( htmlResp, replacements );
 
           var chatContainer   = document.querySelector('.chat-container');
           var replyElement    = document.createElement('div');
@@ -653,6 +653,25 @@
             text: 'File ' + filePath + ' has been successfully embedded!',
             icon: 'success',
         });
+
+      });
+
+      document.getElementById("analyzepage").addEventListener("click", function() {
+        
+        alert(`Analyze Page!!`);
+        const expertise = document.getElementById('ddexpert').value;
+        const dstyle    = document.getElementById('dstyle').value;
+        const dmodel    = document.getElementById('dmodel').value;
+        const attach    = document.getElementById("attachment").value;
+        const datauri    = document.getElementById("datauri").value;
+
+        const cmd = "";
+        const params = { message, expertise, dstyle, dmodel, attach, datauri, cmd };
+        if(dmodel === "embeddings"){
+          ipcRenderer.send('req-ai-use-embedding', params );
+        } else {
+          ipcRenderer.send('req-ai-answer', params );
+        };
 
       });
 
