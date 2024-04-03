@@ -17,6 +17,11 @@ Todo:
             - Added history array in SimplyOllama
             - Added ollama library in SimplOllama
             - 
+04/03/2024  - Refactoring: create a function buildPersona
+            - Refactoring: create a function selectModel
+            - Refactoring: create a function processNonLLM
+            - Added function buildPersonaTooling
+            - 
 
 04/02/2024  - Added process-page-embeddings for processing URL
             - Added cheerio in the library for HTML retrieval

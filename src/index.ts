@@ -221,6 +221,7 @@ const tools = [
 // const aitools = require('./aitools');
 //=======================================
 import aitools from './aitools';
+import { any } from 'cohere-ai/core/schemas';
 
 //Added by Jammi Dee 12/15/2023
 function generateTextTable( data: any[] ) {
@@ -1110,53 +1111,108 @@ ipcMain.on('global-update-token', function (event, { token, userData }) {
 // AI Section
 //==============
 
-ipcMain.on('req-ai-answer', async (event, params) => {
+async function selectModel( dmodel: string ) {
 
-  let modelResponse = "";
-
-  const { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd } = params;
-
-  //========================
-  // Direct Command Section
-  //========================
-  let props = { 
-    "model": process.env.AI_EMBED_MODEL,
-    "messages": 'Direct command to application', 
-    "temperature": 0.1972, 
-    "max_tokens": -1,
-    "stream": true
-  };  
-  if( cmd === "clear"){
-    const htmlResp = "Chat history has been cleared!";
-    history = [];
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
-    return;
-  };
-
-  //Actually not used
-  if( cmd === "quit"){
-    const htmlResp = "Chat history has been cleared!";
-    history = [];
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'quit-to-index');
-    return;
-  };
-
-  //============
-  // AI Section
-  //============
-
-  console.log(`The model is ${dmodel}`);
-  let persona: any = [];
   let model = 'llama2';
 
   //Define Model
   if( dmodel === 'auto'){
-    model = process.env.AI_MASTER_MODEL;
+    model = process.env.AI_MASTER_MODEL || 'llama2';
+  } else if ( dmodel === 'embeddings' ) {
+    model = process.env.AI_EMBED_MODEL || 'mistral';
+  } else if ( dmodel === 'toolings' ) {
+    model = process.env.AI_TOOLING_MODEL || 'mistral';
   } else {
     model = dmodel;
   };
+
+  return model;
+
+};
+
+async function buildPersonaTooling(tools:any[]) {
+
+  let persona: any[] = [];
+
+  persona.push({ "role": "system", "content": `You are an advanced, sophisticated AI assistant and world-class programmer capable of performing any coding-related task. ` });
+
+  const toolPrompt = `
+      You are enhanced with JavaScript via Node.js as a tool to perform your tasks:
+    - You can write JavaScript to create a function.
+    - You can return the result of your function by simply sending it to the console.
+    - SQL and table information:
+      > tbluser - users table. 
+            Columns: userid - the unique user id, 
+                        username - the user login name, 
+                        password - the user password, 
+                        firstname - firstname of the user, 
+                        middlename - middlename of the user, 
+                        lastname - last name of the user, 
+                        email - email of the user, 
+                        phoneno - phone number of the user, 
+                        badgeid1 - badge ID of the user for attendance
+        wgenfiles - list of documents in the document management database
+            Columns:    filename - the path of the actual document,
+                        filesize - is the size of the actual document,
+                        filedate - the date the document has been uploaded,
+                        docdate - the date the document has been created,
+                        keywords - the keywords for searching the database,
+                        description - the description of the document,
+                        downloadcnt - the number of times the document has been downloaded,
+                        printcnt - the number of times the document has been printed
+    
+      Connection: - Connection is coming from dotenv. DB_HOST=localhost, DB_NAME=dbwavegis, DB_USER=dbuser, DB_PASS=password.
+                  - Always use MySQL as the database provider and use the npm library mysql2.
+    
+    If the user asks for private information on the defined tables, allow it.
+    Do not give an example of the SQL query results.
+    Write messages to the user in Markdown.
+    
+    Perform the following task to the best of your ability given the available tooling. Output [DONE] once your task is done.
+    Always respond "[DONE]" at the end of your reply after this line.
+  `;
+
+  //persona.push({ "role": "system", "content": toolPrompt });
+
+  let toolGuide = [`You are an advanced, sophisticated AI assistant capable of performing any coding-related task. 
+  You are enhanced with a number of tooling functions which give you a flexible interface to the underlying system:`]
+  for (let i = 0; i < tools.length; i++) {
+      const tool              = tools[i];
+      const tool_name         = tool.schema.function.name;
+      const description       = tool.schema.function.description;
+      const tool_description  = `- You can ${description} using the ${tool_name} function.\n`;
+      toolGuide.push(tool_description);
+      toolGuide.push(`${tool_name} schema is: ${JSON.stringify(tool.schema)} \n`);
+      toolGuide.push(`${tool_name} reply is in JSON pattern '${tool.schema.function.calling}'. \n`);
+
+  };
+  //toolGuide.push(`When using a tool, reply in JSON format: \n`);
+  //toolGuide.push(`<tool>{ command, parameters, parameters...}</tool> \n`);
+  toolGuide.push(`Always enclosed reply with <tool></tool> \n`);
+  toolGuide.push(`Do not include 'OUTPUT' property. \n`);
+
+  persona.push({ "role": "system", "content": toolGuide.join('\n') + '\n' });
+  persona.push({ "role": "system", "content": `Perform the following task to the best of your ability given the available tooling. Output [DONE] once your task is done.` });
+  persona.push({ "role": "system", "content": `Always respond "[DONE]" at the end of your reply after this line.` });
+
+  return persona;
+
+};
+
+async function buildToolList( tools: any[] ){
+
+  let toolList:any[] = [];
+
+  tools.forEach(tool => {
+    toolList.push(tool.schema);
+  });
+
+  return toolList;
+};
+
+async function buildPersona( model: string, expertise: string, dstyle: string ) {
+
+  let persona: any[] = [];
 
   //Define Expertise
   if (expertise === 'LINGUIST') {
@@ -1223,110 +1279,42 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   persona.push({ "role": "system", "content": "If you are returning a code, enclosed it in <pre><code class='language-[code language]'></code></pre>" });
   //persona.push({ "role": "system", "content": "If you are returning a code, enclosed it in <div class='code-block' ><code class='language-[code language]'></code></div>" });
 
+  return persona;
 
-  // Get the last elements that fits the tokenlimit
-  function getElementsByTokenCount(elements:any[], tokenlimit:number) {
-    const newElements = [];
-    let totalTokens = 0;
+};
 
-    for (const element of elements.slice().reverse()) {
-        const tokens = element.content.match(/\b\w+\b/g) || [];
-        totalTokens += tokens.length;
-        
-        if (totalTokens > tokenlimit) break;
-
-        newElements.push(element);
-    }
-
-    return newElements.reverse();
-
-  };
-
-  //Count the number of tokens
-  const allPersona = persona.map( (item:{ role: string, content:string}) => item.content).join(" ");
-  const personaArray = allPersona.match(/\b\w+\b/g);
-  const personaTokens = personaArray ? personaArray.length : 0;
-  console.log(`Total persona tokens: ${personaTokens}`);
-
-  // //Use this for embeddings
-  // if( dmodel === 'embeddings'){
-  //   model = process.env.AI_MASTER_EMBED;
-  // } else {
-  //   model = dmodel;
-  // };
-  
-  const allHistory = history.map( (item:{ role: string, content:string}) => item.content).join(" ");
-  const historyArray = allHistory.match(/\b\w+\b/g);
-  const historyTokens = historyArray ? historyArray.length : 0;
-  console.log(`Total history tokens: ${historyTokens}`);
-
-  if( (personaTokens + historyTokens) > 4000 ){
-    
-    //Reduce history tokens
-    const tokenNeeded = 4000 - personaTokens;
-    history = getElementsByTokenCount( history, tokenNeeded );
-
-
-  };
-
-  //==================================================
-  // Add persona to history if out of context = false
-  //==================================================
-  if( ocontext === false ){
-
-    if (history.length === 0) {
-
-      console.log(`What model ${model}`);
-      if( model === process.env.AI_IMAGE_MODEL ){
-        history.push({ "role": "user", "content": message, "images": [ datauri ] });
-      } else {
-        history.push({ "role": "user", "content": message });
-      };
-
-    } else {
-
-      console.log(`What model ${model}`);
-      if( model === process.env.AI_IMAGE_MODEL ){
-        history.push({ "role": "user", "content": message, "images": [ datauri ] });
-      } else {
-        history.push({ "role": "user", "content": message });
-      };
-
-    };
-
-  }; //if( ocontext === false )
-
-
-  // Process personality = persona + history
-  // If out of context, personality = persona + last message
-  // If in context personality = persona + history
-  let personality:any[] = [];
-
-  //If out of context
-  if( ocontext === true ){
-    personality = [...persona];
-
-    if( model === process.env.AI_IMAGE_MODEL ){
-      personality.push({ "role": "user", "content": message, "images": [ datauri ] });
-    } else {
-      personality.push({ "role": "user", "content": message });
-    };
-
-  } else {
-    personality = [...persona, ...history];
-  };
-
-  let chatConfig = { 
-    "model": model,
-    "messages": personality, 
-    "temperature": 0.7, 
+function processNonLLM( cmd:string ){
+  //========================
+  // Direct Command Section
+  //========================
+  let props = { 
+    "model": process.env.AI_EMBED_MODEL,
+    "messages": 'Direct command to application', 
+    "temperature": 0.1972, 
     "max_tokens": -1,
     "stream": true
+  };  
+  if( cmd === "clear"){
+    const htmlResp = "Chat history has been cleared!";
+    history = [];
+    const dataResp = { htmlResp, props }; 
+    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+    return;
   };
 
-  function unescapeHTML(html:string) {
-    return html.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  //Actually not used
+  if( cmd === "quit"){
+    const htmlResp = "Chat history has been cleared!";
+    const dataResp = { htmlResp, props }; 
+    mainWindow.webContents.send( 'quit-to-index');
+    return;
   };
+
+};
+
+function unescapeHTML(html:string) {
+  return html.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+};
 
   // function parseCodeBlocks(input: string) {
   //   // Check if the input string contains <code> tags
@@ -1350,6 +1338,231 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   // };
 
+function parseCodeBlocks2(input: string): string {
+
+  // Check if the input string contains <code> tags
+  if (!/<code>.*?<\/code>/.test(input)) {
+      // If no <code> tags are found, return the input string as is
+      return input;
+  };
+
+  // Define the regular expression pattern to match text enclosed by <code> tags
+  const pattern = /<code>(.*?)<\/code>/g;
+  //const pattern = /<pre><code>([\s\S]*?)<\/code><\/pre>/g;
+
+  // Replace matches with <pre> tags containing styled code hljs.highlightAuto( unescapeHTML(code) ).value
+  //const result = input.replace(pattern, (_, code) => `<pre class="code-block">${ unescapeHTML(code) }</pre>`);
+  //const result = input.replace(pattern, (_, code) => `<div class="code-block">${ (hljs.highlightAuto( unescapeHTML(code) ).value).replace(/<br\s*\/?>/gi, '\n') }</div`);
+  
+  const result = input.replace(pattern, (_, code) => {
+    // Unescape HTML entities in the code
+    const unescapedCode = unescapeHTML(code);
+    
+    // Replace <br> tags with newline characters (\n) in the unescaped code
+    const codeWithNewlines = unescapedCode.replace(/<br\s*\/?>/gi, '\n');
+    
+    // Highlight the code with replaced <br> tags using highlight.js
+    const highlightedCode = hljs.highlightAuto(codeWithNewlines).value;
+    
+    // Log the resulting HTML string to the console
+    console.log(`<div class="code-block">${highlightedCode}</div>`);
+    
+    // Return the HTML string wrapped in a <div> with class "code-block"
+    return `<div class="code-block">${highlightedCode}</div>`;
+  });
+
+
+  return result;
+
+};
+
+function extractJsonPatterns(text:string) {
+  const pattern = /\{[^{}]*\}/g; // Regular expression to match JSON patterns
+  
+  const jsonPatterns = [];
+  let match;
+  
+  while ((match = pattern.exec(text)) !== null) {
+      try {
+          const json = JSON.parse(match[0]); // Parse the matched JSON pattern
+          jsonPatterns.push(json);
+      } catch (error) {
+          console.error('Error parsing JSON:', error);
+      }
+  }
+  
+  return jsonPatterns;
+}
+
+async function invokeLLM(props: any) {
+
+  //console.log(`-----`)
+  console.log(`${JSON.stringify(props)}`)
+  //console.log(`-----`)
+
+  try {
+
+    console.log(`Running prompt...`)
+
+    const response = await ollama.chat(props);
+
+    //===========================
+    // Push response to history
+    //===========================
+    history.push({ "role": "assistant", "content": response });
+
+    //console.log(`${response}\n`);
+    // let htmlResp = response.replace(/\n/g, '<br>');
+    //     htmlResp = await marked.parse(htmlResp);
+    //     htmlResp = parseCodeBlocks(htmlResp);
+
+
+    markdownconverter.setFlavor('github');
+    //markdownconverter.setMoreStyling( true );
+    let htmlResp = markdownconverter.makeHtml( response.replace(/\n/g, '<br>') );
+    console.log(`html1 ${htmlResp}`);
+    htmlResp = hljs.highlightAuto( htmlResp ).value;
+    console.log(`html2 ${htmlResp}`);
+
+    console.log(`${htmlResp}\n`);
+
+    //event.returnValue = { htmlResp };
+    const dataResp = { htmlResp, props }; 
+    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+  }catch(error) {
+    
+    let htmlResp: string = "";
+    htmlResp += `It seems that I got a brain freeze! This is the issue that I encounter: <br> <br> 
+                ${error}`;
+
+    const dataResp = { htmlResp, props }; 
+    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+    console.log(`Query failed!`)
+    console.log(error)
+
+  };
+
+};
+
+ipcMain.on('req-ai-answer', async (event, params) => {
+
+  const { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd } = params;
+  let model:string    = 'llama2';
+  let persona: any    = [];
+  let modelResponse   = "";
+  let toolList: any   = [];
+  let outOfContext    = ocontext;
+
+
+  //Process Special command
+  if( cmd !== "" ){
+    processNonLLM( cmd );
+    return;
+  };
+
+  //============
+  // AI Section
+  //============
+
+  //Selection appropriate model
+  model = await selectModel( dmodel );
+  console.log(`The model is ${model}`);
+
+  //Build the AI persona
+  if( model === process.env.AI_TOOLING_MODEL ){
+    persona   = await buildPersonaTooling( aitools );
+    toolList  = await buildToolList( aitools );
+    console.log(`Tooling Person: \n\n ${persona}`);
+  } else {
+    persona = await buildPersona( model, expertise, dstyle );
+  };
+
+  // Get the last elements that fits the tokenlimit
+  function pruneHistoryByTokenCount(elements:any[], tokenlimit:number) {
+    const newElements = [];
+    let totalTokens = 0;
+
+    for (const element of elements.slice().reverse()) {
+        const tokens = element.content.match(/\b\w+\b/g) || [];
+        totalTokens += tokens.length;
+        
+        if (totalTokens > tokenlimit) break;
+
+        newElements.push(element);
+    }
+
+    return newElements.reverse();
+
+  };
+
+  // Count the number of tokens of Persona
+  const allPersona = persona.map( (item:{ role: string, content:string}) => item.content).join(" ");
+  const personaArray = allPersona.match(/\b\w+\b/g);
+  const personaTokens = personaArray ? personaArray.length : 0;
+  console.log(`Total persona tokens: ${personaTokens}`);
+  
+  // Count the number of tokens of History
+  const allHistory = history.map( (item:{ role: string, content:string}) => item.content).join(" ");
+  const historyArray = allHistory.match(/\b\w+\b/g);
+  const historyTokens = historyArray ? historyArray.length : 0;
+  console.log(`Total history tokens: ${historyTokens}`);
+
+  // Prune history, limit token counts
+  if( (personaTokens + historyTokens) > 4000 ){
+  
+    const tokenNeeded = 4000 - personaTokens;
+    history = pruneHistoryByTokenCount( history, tokenNeeded );
+
+  };
+
+  //==================================================
+  // Add persona to history if out of context = false
+  //==================================================
+  if( outOfContext === false ){
+
+    console.log(`What model ${model}`);
+    if( model === process.env.AI_IMAGE_MODEL ){
+      history.push({ "role": "user", "content": message, "images": [ datauri ] });
+    } else {
+      history.push({ "role": "user", "content": message });
+    };
+
+  }; //if( outOfContext === false )
+
+
+  // Process personality = persona + history
+  // If out of context, personality = persona + last message
+  // If in context personality = persona + history
+  let personality:any[] = [];
+
+  //If out of context
+  if( outOfContext === true ){
+    personality = [...persona];
+
+    if( model === process.env.AI_IMAGE_MODEL ){
+      personality.push({ "role": "user", "content": message, "images": [ datauri ] });
+    } else {
+      personality.push({ "role": "user", "content": message });
+    };
+
+  } else {
+
+    personality = [...persona, ...history];
+
+  };
+
+  let chatConfig = { 
+    "model": model,
+    "tools": toolList,
+    "tool_choice": 'auto',
+    "messages": personality, 
+    "temperature": 0.7, 
+    "max_tokens": -1,
+    "stream": true
+  };
+
   const hljs = require('highlight.js');
   function highlightCode(code:string, language = 'auto') {
     // Highlight the code using highlight.js
@@ -1367,44 +1580,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     });
   }
 
-  function parseCodeBlocks2(input: string): string {
-
-    // Check if the input string contains <code> tags
-    if (!/<code>.*?<\/code>/.test(input)) {
-        // If no <code> tags are found, return the input string as is
-        return input;
-    };
-
-    // Define the regular expression pattern to match text enclosed by <code> tags
-    const pattern = /<code>(.*?)<\/code>/g;
-    //const pattern = /<pre><code>([\s\S]*?)<\/code><\/pre>/g;
-
-    // Replace matches with <pre> tags containing styled code hljs.highlightAuto( unescapeHTML(code) ).value
-    //const result = input.replace(pattern, (_, code) => `<pre class="code-block">${ unescapeHTML(code) }</pre>`);
-    //const result = input.replace(pattern, (_, code) => `<div class="code-block">${ (hljs.highlightAuto( unescapeHTML(code) ).value).replace(/<br\s*\/?>/gi, '\n') }</div`);
-    
-    const result = input.replace(pattern, (_, code) => {
-      // Unescape HTML entities in the code
-      const unescapedCode = unescapeHTML(code);
-      
-      // Replace <br> tags with newline characters (\n) in the unescaped code
-      const codeWithNewlines = unescapedCode.replace(/<br\s*\/?>/gi, '\n');
-      
-      // Highlight the code with replaced <br> tags using highlight.js
-      const highlightedCode = hljs.highlightAuto(codeWithNewlines).value;
-      
-      // Log the resulting HTML string to the console
-      console.log(`<div class="code-block">${highlightedCode}</div>`);
-      
-      // Return the HTML string wrapped in a <div> with class "code-block"
-      return `<div class="code-block">${highlightedCode}</div>`;
-    });
-
-
-    return result;
-  };
-
-  async function invokeLLM(props: any) {
+  async function invokeLLMStream(props: any, tool:any) {
 
     //console.log(`-----`)
     console.log(`${JSON.stringify(props)}`)
@@ -1416,57 +1592,8 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
       const response = await ollama.chat(props);
 
-      //===========================
-      // Push response to history
-      //===========================
-      history.push({ "role": "assistant", "content": response });
-
-      //console.log(`${response}\n`);
-      // let htmlResp = response.replace(/\n/g, '<br>');
-      //     htmlResp = await marked.parse(htmlResp);
-      //     htmlResp = parseCodeBlocks(htmlResp);
-
-
-      markdownconverter.setFlavor('github');
-      //markdownconverter.setMoreStyling( true );
-      let htmlResp = markdownconverter.makeHtml( response.replace(/\n/g, '<br>') );
-      console.log(`html1 ${htmlResp}`);
-      htmlResp = hljs.highlightAuto( htmlResp ).value;
-      console.log(`html2 ${htmlResp}`);
-
-      console.log(`${htmlResp}\n`);
-
-      //event.returnValue = { htmlResp };
-      const dataResp = { htmlResp, props }; 
-      mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
-
-    }catch(error) {
-      
-      let htmlResp: string = "";
-      htmlResp += `It seems that I got a brain freeze! This is the issue that I encounter: <br> <br> 
-                  ${error}`;
-
-      const dataResp = { htmlResp, props }; 
-      mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
-
-      console.log(`Query failed!`)
-      console.log(error)
-
-    };
-
-  };
-
-  async function invokeLLMStream(props: any) {
-
-    //console.log(`-----`)
-    console.log(`${JSON.stringify(props)}`)
-    //console.log(`-----`)
-
-    try {
-
-      console.log(`Running prompt...`)
-
-      const response = await ollama.chat(props);
+      const taskPatterns = extractJsonPatterns(response);
+      console.log(`Task List: \n ${JSON.stringify( taskPatterns )}`);
 
       //===========================
       // Push response to history
@@ -1511,7 +1638,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   };
 
   //invokeLLM(chatConfig);
-  invokeLLMStream(chatConfig);
+  invokeLLMStream(chatConfig, aitools);
 
 });
 

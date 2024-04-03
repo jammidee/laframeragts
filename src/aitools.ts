@@ -43,6 +43,7 @@ interface ToolSchema {
             };
             required: string[];
         };
+        calling: string,
     };
 }
 
@@ -71,7 +72,8 @@ const tools: Tool[] = [
                         }
                     },
                     required: ['command']
-                }
+                },
+                calling: `{ task: 'cmd', command: <replace with CMD.exe command>}`,
             },
         },
         function: async ({ command }: { command: string }) => {
@@ -106,7 +108,8 @@ const tools: Tool[] = [
                         }
                     },
                     required: ['sqlscript']
-                }
+                },
+                calling: `{ task: 'sql', command: <replace with SQL Command>}`,
             },
         },
         function: async ({ sqlscript }: { sqlscript: string }) => {
