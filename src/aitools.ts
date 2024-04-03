@@ -109,7 +109,7 @@ const tools: Tool[] = [
                     },
                     required: ['sqlscript']
                 },
-                calling: `{ task: 'sql', command: <replace with SQL Command>}`,
+                calling: `{ task: 'sql', sqlscript: <replace with SQL Command>}`,
             },
         },
         function: async ({ sqlscript }: { sqlscript: string }) => {

@@ -12,16 +12,19 @@ Tested / QA by:				Jammi Dee
 
 Todo:
             - Resolve timeout issue for large embeddings
+            - insert tool result in response
+
+            - 
+04/04/2024  - Refactoring: create a function buildPersona
+            - Refactoring: create a function selectModel
+            - Refactoring: create a function processNonLLM
+            - Added function buildPersonaTooling
+            - Added aiAssistant function to perform query and result only
+            - Successfully execute a tool
             - Added ollama library
             - Added cohere-ai lirary as a dependency by langchain
             - Added history array in SimplyOllama
             - Added ollama library in SimplOllama
-            - 
-04/03/2024  - Refactoring: create a function buildPersona
-            - Refactoring: create a function selectModel
-            - Refactoring: create a function processNonLLM
-            - Added function buildPersonaTooling
-            - 
 
 04/02/2024  - Added process-page-embeddings for processing URL
             - Added cheerio in the library for HTML retrieval

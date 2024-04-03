@@ -1,7 +1,7 @@
 {
   "name": "lakuboragts",
   "productName": "lakuboragts",
-  "version": "1.5.432",
+  "version": "1.5.433",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {

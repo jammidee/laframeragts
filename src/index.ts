@@ -1183,12 +1183,15 @@ async function buildPersonaTooling(tools:any[]) {
       const tool_description  = `- You can ${description} using the ${tool_name} function.\n`;
       toolGuide.push(tool_description);
       toolGuide.push(`${tool_name} schema is: ${JSON.stringify(tool.schema)} \n`);
-      toolGuide.push(`${tool_name} reply is in JSON pattern '${tool.schema.function.calling}'. \n`);
+      toolGuide.push(`${tool_name} reply is in JSON pattern '${JSON.stringify(tool.schema.function.calling)}'. \n`);
+      //toolGuide.push(`${tool_name} reply is in JSON pattern '${JSON.stringify(tool.schema.function)}'. \n`);
+      //toolGuide.push(`In the ${tool_name} schema, return only the function name and parameters. \n`);
 
   };
-  //toolGuide.push(`When using a tool, reply in JSON format: \n`);
-  //toolGuide.push(`<tool>{ command, parameters, parameters...}</tool> \n`);
-  toolGuide.push(`Always enclosed reply with <tool></tool> \n`);
+
+  toolGuide.push(`When using a tool, reply in JSON format: \n`);
+  toolGuide.push(`<tool>{ task, parameters, parameters...}</tool> \n`);
+  //toolGuide.push(`Always enclosed reply with <tool></tool> \n`);
   toolGuide.push(`Do not include 'OUTPUT' property. \n`);
 
   persona.push({ "role": "system", "content": toolGuide.join('\n') + '\n' });
@@ -1376,7 +1379,7 @@ function parseCodeBlocks2(input: string): string {
 
 };
 
-function extractJsonPatterns(text:string) {
+function extractTaskPatterns(text:string) {
   const pattern = /\{[^{}]*\}/g; // Regular expression to match JSON patterns
   
   const jsonPatterns = [];
@@ -1387,7 +1390,7 @@ function extractJsonPatterns(text:string) {
           const json = JSON.parse(match[0]); // Parse the matched JSON pattern
           jsonPatterns.push(json);
       } catch (error) {
-          console.error('Error parsing JSON:', error);
+          console.error('Error parsing JSON:', error + ' --> ' + match[0]);
       }
   }
   
@@ -1446,17 +1449,58 @@ async function invokeLLM(props: any) {
 
 };
 
+// Get the last elements that fits the tokenlimit
+function pruneHistoryByTokenCount(elements:any[], tokenlimit:number) {
+  const newElements = [];
+  let totalTokens = 0;
+
+  for (const element of elements.slice().reverse()) {
+      const tokens = element.content.match(/\b\w+\b/g) || [];
+      totalTokens += tokens.length;
+      
+      if (totalTokens > tokenlimit) break;
+
+      newElements.push(element);
+  }
+
+  return newElements.reverse();
+
+};
+
+const hljs02 = require('highlight.js');
+function highlightCode(code:string, language = 'auto') {
+  // Highlight the code using highlight.js
+  const highlightedCode = hljs.highlightAuto(code, [language]).value;
+  return highlightedCode;
+}
+
+const prettier = require('prettier');
+function formatCode(unformattedCode: string): string {
+  return prettier.format(unformattedCode, {
+    semi: false,
+    singleQuote: true,
+    tabWidth: 2,
+    // Omitting the 'parser' option to enable automatic detection
+  });
+}
+
 ipcMain.on('req-ai-answer', async (event, params) => {
 
   const { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd } = params;
+
   let model:string    = 'llama2';
+
+  let uprompt:any;
   let persona: any    = [];
+
   let modelResponse   = "";
   let toolList: any   = [];
   let outOfContext    = ocontext;
 
 
-  //Process Special command
+  //=========================
+  // Process Special command
+  //=========================
   if( cmd !== "" ){
     processNonLLM( cmd );
     return;
@@ -1474,27 +1518,9 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   if( model === process.env.AI_TOOLING_MODEL ){
     persona   = await buildPersonaTooling( aitools );
     toolList  = await buildToolList( aitools );
-    console.log(`Tooling Person: \n\n ${persona}`);
+    console.log(`Tooling Persona: \n\n ${JSON.stringify(persona)}`);
   } else {
     persona = await buildPersona( model, expertise, dstyle );
-  };
-
-  // Get the last elements that fits the tokenlimit
-  function pruneHistoryByTokenCount(elements:any[], tokenlimit:number) {
-    const newElements = [];
-    let totalTokens = 0;
-
-    for (const element of elements.slice().reverse()) {
-        const tokens = element.content.match(/\b\w+\b/g) || [];
-        totalTokens += tokens.length;
-        
-        if (totalTokens > tokenlimit) break;
-
-        newElements.push(element);
-    }
-
-    return newElements.reverse();
-
   };
 
   // Count the number of tokens of Persona
@@ -1520,32 +1546,33 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   //==================================================
   // Add persona to history if out of context = false
   //==================================================
-  if( outOfContext === false ){
 
-    console.log(`What model ${model}`);
-    if( model === process.env.AI_IMAGE_MODEL ){
-      history.push({ "role": "user", "content": message, "images": [ datauri ] });
-    } else {
-      history.push({ "role": "user", "content": message });
-    };
+  //What type of prompt to use.
+  if( model === process.env.AI_IMAGE_MODEL ){
+    uprompt = { "role": "user", "content": message, "images": [ datauri ] };
+  } else {
+    uprompt = { "role": "user", "content": message };
+  };
 
-  }; //if( outOfContext === false )
+  // if( outOfContext === false ){
+
+  //   console.log(`What model ${model}`);
+  //   //history.push(uprompt);
+
+  // }; //if( outOfContext === false )
 
 
+  //==========================================================
   // Process personality = persona + history
   // If out of context, personality = persona + last message
   // If in context personality = persona + history
+  //==========================================================
   let personality:any[] = [];
 
   //If out of context
   if( outOfContext === true ){
     personality = [...persona];
-
-    if( model === process.env.AI_IMAGE_MODEL ){
-      personality.push({ "role": "user", "content": message, "images": [ datauri ] });
-    } else {
-      personality.push({ "role": "user", "content": message });
-    };
+    //personality.push( uprompt );
 
   } else {
 
@@ -1563,24 +1590,20 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     "stream": true
   };
 
-  const hljs = require('highlight.js');
-  function highlightCode(code:string, language = 'auto') {
-    // Highlight the code using highlight.js
-    const highlightedCode = hljs.highlightAuto(code, [language]).value;
-    return highlightedCode;
-  }
+  async function aiAssistant( prompt: any, props: any, tools:any) {
 
-  const prettier = require('prettier');
-  function formatCode(unformattedCode: string): string {
-    return prettier.format(unformattedCode, {
-      semi: false,
-      singleQuote: true,
-      tabWidth: 2,
-      // Omitting the 'parser' option to enable automatic detection
-    });
-  }
+    let chatCfg = {...props};
 
-  async function invokeLLMStream(props: any, tool:any) {
+    //Add tools
+    chatCfg.tools = tools;
+    //Add prompt to personality, then query LLM
+    chatCfg.messages.push( prompt );
+    const response = await ollama.chat(chatCfg);
+    return response;
+
+  };
+
+  async function invokeLLMStream( prompt:any, props: any, tools: any, ocontext: boolean) {
 
     //console.log(`-----`)
     console.log(`${JSON.stringify(props)}`)
@@ -1590,23 +1613,154 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
       console.log(`Running prompt...`)
 
-      const response = await ollama.chat(props);
+      let response = '';
+      if( props.model === process.env.AI_TOOLING_MODEL){
 
-      const taskPatterns = extractJsonPatterns(response);
-      console.log(`Task List: \n ${JSON.stringify( taskPatterns )}`);
+        props.temperature = 0.6;
+        response = await aiAssistant(prompt, props, tools);
 
-      //===========================
-      // Push response to history
-      //===========================
-      history.push({ "role": "assistant", "content": response });
+      } else { 
 
-      //console.log(`${response}\n`);
-      let htmlResp = response;
-          htmlResp = await marked.parse(htmlResp);
-          htmlResp = parseCodeBlocks2(htmlResp);
-          console.log(`parse Code Block ${htmlResp}\n`);
+        props.temperature = 0.7;
+        response = await aiAssistant(prompt, props, tools);
 
-          htmlResp = htmlResp.replace(/\n/g, '<br>');
+      };
+      
+      //const response = await ollama.chat(props);
+
+      //Process tooling compared to regular LLM query
+      if( props.model === process.env.AI_TOOLING_MODEL){
+
+        let taskPatterns = extractTaskPatterns( response );
+        if(taskPatterns.length === 0 ){
+
+          console.log(`No valid task on first try. ${JSON.stringify(taskPatterns)}...`);
+          props.temperature = 0.95;
+          response = await aiAssistant(prompt, props, tools);
+          taskPatterns = extractTaskPatterns( response );
+
+          if(taskPatterns.length === 0 ){
+
+            console.log(`No valid task on second try. ${JSON.stringify(taskPatterns)}...`);
+            props.temperature = 0.95;
+            response = await aiAssistant(prompt, props, tools);
+            taskPatterns = extractTaskPatterns( response );
+
+            if(taskPatterns.length === 0 ){
+              console.log(`No valid task on third try. ${JSON.stringify(taskPatterns)}...`);
+            };
+
+          };
+
+        };
+
+        //Convert a non-array result to array
+        if(taskPatterns.length > 0 ){
+
+          if(!Array.isArray(taskPatterns)) {
+            taskPatterns = [taskPatterns];
+          }
+
+          console.log(`Task List: \n ${JSON.stringify(taskPatterns)}`);
+
+          // Loop task list, search tools
+          for (let i = 0; i < taskPatterns.length; i++) {
+
+            try{
+
+              let func_arg:any  = {};
+              let taskValid     = true;
+              let tool_call     = taskPatterns[i];
+              console.log(`Task ${i}: ${JSON.stringify(tool_call)}`);
+  
+              let function_name = tool_call.task;
+              let function_call = tools.find( (tool:any) => tool.schema.function.name === function_name).function;
+              if( function_call ){
+                // Get the required parameters of a tool and check if its present
+                // in the task pattern.
+                let func_req = tools.find( (tool:any) => tool.schema.function.name === function_name).schema.function.parameters.required;
+                if( func_req ){
+  
+                  for (let p = 0; p < func_req.length; p++){
+                    const paramName = func_req[p];
+                    const param = tool_call[paramName];
+                    if(param === undefined ){
+                      taskValid = false;
+                      break;
+                    } else {
+                      func_arg[paramName] = param;
+                    };
+                  }; //for (let p = 0; p < func_req.length; p++)
+  
+                }; //if( func_req )
+  
+                if(taskValid){
+  
+                  let function_response = await function_call(func_arg);
+                  console.log(`Function_response is: \n\n ${function_response}`);
+  
+                }; //if(taskValid)
+  
+              }; //if( function_call )  
+
+            }catch(error){
+  
+              //Ignore error here
+              console.log(`Invalid Task ${i}: ${JSON.stringify(taskPatterns[i])}`);
+  
+            }; //try{
+
+          }; //for (let i = 0; i < taskPatterns.length; i++)
+
+        }; //if(taskPatterns.length > 0 )
+
+
+        //===========================
+        // Push response to history
+        //===========================
+        if( ocontext === false ){
+          history.push( uprompt );
+          history.push({ "role": "assistant", "content": response });
+        };
+
+        //console.log(`${response}\n`);
+        let htmlResp = response;
+            htmlResp = await marked.parse(htmlResp);
+            htmlResp = parseCodeBlocks2(htmlResp);
+            console.log(`parse Code Block ${htmlResp}\n`);
+
+            htmlResp = htmlResp.replace(/\n/g, '<br>');
+
+        console.log(`${htmlResp}\n`);
+
+        const dataResp = { htmlResp, props }; 
+        mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+
+      } else {
+
+        //===========================
+        // Push response to history
+        //===========================
+        if( ocontext === false ){
+          history.push( uprompt );
+          history.push({ "role": "assistant", "content": response });
+        };
+
+        //console.log(`${response}\n`);
+        let htmlResp = response;
+            htmlResp = await marked.parse(htmlResp);
+            htmlResp = parseCodeBlocks2(htmlResp);
+            console.log(`parse Code Block ${htmlResp}\n`);
+
+            htmlResp = htmlResp.replace(/\n/g, '<br>');
+
+        console.log(`${htmlResp}\n`);
+
+        const dataResp = { htmlResp, props }; 
+        mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+      };
 
       // markdownconverter.setFlavor('github');
       // //markdownconverter.setMoreStyling( true );
@@ -1615,11 +1769,8 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       // htmlResp = hljs.highlightAuto( htmlResp ).value;
       // console.log(`html2 ${htmlResp}`);
 
-      console.log(`${htmlResp}\n`);
-
       //event.returnValue = { htmlResp };
-      const dataResp = { htmlResp, props }; 
-      mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
 
     }catch(error) {
       
@@ -1638,7 +1789,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   };
 
   //invokeLLM(chatConfig);
-  invokeLLMStream(chatConfig, aitools);
+  invokeLLMStream(uprompt, chatConfig, aitools, ocontext);
 
 });
 

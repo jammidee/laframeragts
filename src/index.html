@@ -521,13 +521,13 @@
             let specialCommand = ""; 
             if(message ==="::quit"){
               cmd = "quit";
-              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to terminate chatting to me.`;
+              specialCommand = `🌟 <b>You</b><br>${message}. Requesting to terminate chatting with me.`;
               ipcRenderer.send('quit-to-index' );
               return;
             };
             if(message ==="::clear"){
               cmd = "clear";
-              specialCommand = `🌟 <b>You</b><br>${message}. You are requesting to clear history. It has been cleared!`;
+              specialCommand = `🌟 <b>You</b><br>${message}. Requesting to clear history.`;
             };
 
             messageElement.classList.add('paper-area');

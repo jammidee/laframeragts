@@ -92,6 +92,17 @@ Sophia is a chatbot that uses multiple models during conversation. There are pre
 
 **Uploading an image** - when the user uploads an image, the **AI_IMAGE_MODEL** is selected and the chat textbox is automatically filled with a pre-defined text that is editable or customizable.
 
+## UI Objects
+- **Text Box** - place here the prompt to be used by the LLM.
+- **Send Button / Heart Icon** - Send buttons send prompt to the model, heart means the request is being processed.
+- **Personality Dropdown** - contains list of LLM models or the alias of LLM model. Example: ***Embeddings*** - this is an alias for llama2. ***Toolings*** - this is an alias for mistral.
+- **Expertise Dropdown** - contains list of expertise the model will be prime using ***system*** prompt.
+- **Style Dropdown** - contains list of chat style the model will be prime using ***system*** prompt.
+- **Eyes Icon** - use for uploading image and analyzing it using **AI_IMAGE_MODEL**. Usually this is assigned to ***llava***.
+- **Camera Icon** - used for taking picture and analyze it using **AI_IMAGE_MODEL**. Usually this is assigned to ***llava***.
+- **Chip Icon** - used for ***Embeddings*** of document. The system will ask for a document and it will perform embeddings out of it.
+
+
 
 ## Prompt Composition
 1. **Persona** - is the behavior of the agent. Tne **model** used, the **expertise** and the **style** being used. These parameters can change anytime during the course of the conversation.
