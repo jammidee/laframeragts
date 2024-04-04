@@ -13,6 +13,10 @@ Tested / QA by:				Jammi Dee
 Todo:
             - Resolve timeout issue for large embeddings
             - insert tool result in response
+            - detect OS, memory and warn user for slow system if these are not enough
+            - detect if ollama is present
+            - detect the model if available or not.
+            - 
 
             - 
 04/04/2024  - Refactoring: create a function buildPersona
