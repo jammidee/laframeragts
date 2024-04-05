@@ -16,10 +16,14 @@ Todo:
             - detect OS, memory and warn user for slow system if these are not enough
             - detect if ollama is present
             - detect the model if available or not.
+            - use nomic-embed-text model for embeddings
+            - Detect if Chromadb is present or not.
             - 
 
-            - 
-04/04/2024  - Refactoring: create a function buildPersona
+04/04/2024  - Refactor and move tools to another file
+            -
+
+04/03/2024  - Refactoring: create a function buildPersona
             - Refactoring: create a function selectModel
             - Refactoring: create a function processNonLLM
             - Added function buildPersonaTooling

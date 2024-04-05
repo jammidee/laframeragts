@@ -131,90 +131,90 @@ var glovars: { // Define the type of glovars object
   models: [] // Initialize models as an empty array
 };
 
-const tools = [
-  {
-      schema: {
-          type: 'function',
-          function: {
-              name: 'cmd',
-              description: 'execute an arbitrary CMD command',
-              parameters: {
-                  type: 'object',
-                  properties: {
-                      command: {
-                          type: 'string',
-                          description: 'CMD command to run'
-                      }
-                  },
-                  required: ['command']
-              }
-          },
-      },
-      function: async ({ command }: { command: string } ) => {
-          return new Promise((resolve, reject) => {
-              console.log(`Running ${command}`);
-              exec(command, { silent: true }, (code:any, stdout:any, stderr:any ) => {
+// const tools = [
+//   {
+//       schema: {
+//           type: 'function',
+//           function: {
+//               name: 'cmd',
+//               description: 'execute an arbitrary CMD command',
+//               parameters: {
+//                   type: 'object',
+//                   properties: {
+//                       command: {
+//                           type: 'string',
+//                           description: 'CMD command to run'
+//                       }
+//                   },
+//                   required: ['command']
+//               }
+//           },
+//       },
+//       function: async ({ command }: { command: string } ) => {
+//           return new Promise((resolve, reject) => {
+//               console.log(`Running ${command}`);
+//               exec(command, { silent: true }, (code:any, stdout:any, stderr:any ) => {
       
-                  if (code === 0) {
-                      console.log(highlight(stdout, { language: 'bash', ignoreIllegals: true }))
-                      resolve(stdout);
-                  } else {
-                      console.log(stderr);
-                      resolve(`${stdout}\n${stderr}`)
-                  }
-              });
-          });
-      }
-  },
-  {
-      schema: {
-          type: 'function',
-          function: {
-              name: 'sql',
-              description: 'execute an arbitrary sql command',
-              parameters: {
-                  type: 'object',
-                  properties: {
-                      sqlscript: {
-                          type: 'string',
-                          description: 'SQL command to run'
-                      }
-                  },
-                  required: ['sqlscript']
-              }
-          },
-      },
-      function: async ( {sqlscript}: { sqlscript:string } ) => {
-          return new Promise(async (resolve, reject) => {
-              console.log(`Running ${sqlscript}`);
+//                   if (code === 0) {
+//                       console.log(highlight(stdout, { language: 'bash', ignoreIllegals: true }))
+//                       resolve(stdout);
+//                   } else {
+//                       console.log(stderr);
+//                       resolve(`${stdout}\n${stderr}`)
+//                   }
+//               });
+//           });
+//       }
+//   },
+//   {
+//       schema: {
+//           type: 'function',
+//           function: {
+//               name: 'sql',
+//               description: 'execute an arbitrary sql command',
+//               parameters: {
+//                   type: 'object',
+//                   properties: {
+//                       sqlscript: {
+//                           type: 'string',
+//                           description: 'SQL command to run'
+//                       }
+//                   },
+//                   required: ['sqlscript']
+//               }
+//           },
+//       },
+//       function: async ( {sqlscript}: { sqlscript:string } ) => {
+//           return new Promise(async (resolve, reject) => {
+//               console.log(`Running ${sqlscript}`);
 
-              //-----------------
-              const connection = await mysql.createConnection({
-                  host: process.env.DB_HOST,
-                  database: process.env.DB_NAME,
-                  user: process.env.DB_USER,
-                  password: process.env.DB_PASSWORD,
-                });
+//               //-----------------
+//               const connection = await mysql.createConnection({
+//                   host: process.env.DB_HOST,
+//                   database: process.env.DB_NAME,
+//                   user: process.env.DB_USER,
+//                   password: process.env.DB_PASSWORD,
+//                 });
 
-                try {
-                  console.log(`Running SQL query: ${sqlscript}`);
-                  const [rows, fields] = await connection.execute(sqlscript);
-                  //const result = JSON.stringify(rows);
-                  const result = '\n\n' + generateTextTable(rows);
-                  //console.log(result);
-                  resolve(result);
-                } catch (error) {
-                  console.error(`Error executing SQL query: ${error.message}`);
-                  resolve(`${error.message}\n${error.stack || ''}`);
-                } finally {
-                  await connection.end();
-                }
+//                 try {
+//                   console.log(`Running SQL query: ${sqlscript}`);
+//                   const [rows, fields] = await connection.execute(sqlscript);
+//                   //const result = JSON.stringify(rows);
+//                   const result = '\n\n' + generateTextTable(rows);
+//                   //console.log(result);
+//                   resolve(result);
+//                 } catch (error) {
+//                   console.error(`Error executing SQL query: ${error.message}`);
+//                   resolve(`${error.message}\n${error.stack || ''}`);
+//                 } finally {
+//                   await connection.end();
+//                 }
 
-              //-----------------
-          });
-      }
-  }
-];
+//               //-----------------
+//           });
+//       }
+//   }
+// ];
 
 //=======================================
 // Load the AI TOOLS list
