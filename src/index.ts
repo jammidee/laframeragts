@@ -1029,36 +1029,116 @@ ipcMain.on('get-ai-tags', async function (event) {
     "max_tokens": -1,
     "stream": true
   };
-  //Actually chatConfig is not used
+
+  async function populateModel( model:string, host:string, port:string){
+    try {
+      let searchModel = process.env.AI_MASTER_MODEL;
+      ollama.setBaseURL(`http://${process.env.AI_MASTER_HOST}:${process.env.AI_MASTER_PORT}`);
+      const response = await ollama.tags(chatConfig);
+      
+      // Check if response has models
+      if (response && response.models && Array.isArray(response.models)) {
+        let modelFound = false;
+        // Loop through each model
+        response.models.forEach((model:any) => {
+
+          const [modelName] = model.model.split(':');
+            //console.log(`The model and the search : ${searchModel} ${modelName}`);
+            // Check if the model matches the searchModel
+            if (modelName === searchModel) {
+
+                //For Enterprise version only used these models
+                glovars.models.push(model);
+                modelFound = true;
+
+            };
+
+        });
+
+        // Check if the searchModel was found
+        if (modelFound) {
+            console.log('Search model found:', searchModel);
+        } else {
+            console.log('Search model not found:', searchModel);
+            mainWindow.webContents.send('resp-get-ai-tags-error', `Master Model ${searchModel} is not found. Please install!`);
+        }
+      } else {
+          console.error('No models found in the response.');
+          app.quit();
+      };
+    } catch (error) {
+      console.error('Error occurred while fetching tags:', error);
+      app.quit();
+    };
+
+  }; //function populateModel( model:string, host:string, port:string)
+
+  //=============================================================
+  // Check for the AI_MASTER_MODEL --> This is a required model.
+  //=============================================================
+  await populateModel( process.env.AI_MASTER_MODEL, process.env.AI_MASTER_HOST, process.env.AI_MASTER_PORT);
+
+  //=============================================================
+  // Check for the AI_IMAGE_MODEL --> This is a required model.
+  //=============================================================
+  await populateModel( process.env.AI_IMAGE_MODEL, process.env.AI_IMAGE_HOST, process.env.AI_IMAGE_PORT);
+
+  //=============================================================
+  // Check for the AI_EMBED_MODEL --> This is a required model.
+  //=============================================================
+  await populateModel( process.env.AI_EMBED_MODEL, process.env.AI_EMBED_HOST, process.env.AI_EMBED_PORT);
+
+  //=============================================================
+  // Check for the AI_TOOLING_MODEL --> This is a required model.
+  //=============================================================
+  await populateModel( process.env.AI_TOOLING_MODEL, process.env.AI_TOOLING_HOST, process.env.AI_TOOLING_PORT);
+
+  //=============================================================
+  // Check for the extra server, get the rest of the models there
+  //=============================================================
   try {
+    ollama.setBaseURL(`http://${process.env.AI_EXTRA_HOST}:${process.env.AI_EXTRA_PORT}`);
     const response = await ollama.tags(chatConfig);
     
     // Check if response has models
     if (response && response.models && Array.isArray(response.models)) {
-      // Loop through each model
-      response.models.forEach((model:any) => {
+        // Filter out models that are already present in glovars.models
+        const newModels = response.models.filter((model:any) => {
+          const [modelName] = model.model.split(':');
+            // Check if the model is not already present in glovars.models
+            return !glovars.models.some((existingModel) => {
+              const [existingModelName] = existingModel.model.split(':');
+              return existingModelName === modelName;
+          });
+        });
 
-          glovars.models.push( model );
-          // Access properties of each model
-          console.log('Name:', model.name);
-          console.log('Model:', model.model);
-          console.log('Modified At:', model.modified_at);
-          console.log('Size:', model.size);
-          console.log('Digest:', model.digest);
-          console.log('Details:', model.details);
-          console.log('--------------------------');
-      });
+        // Add the new models to glovars.models
+        glovars.models.push(...newModels);
 
-      response.models
-      mainWindow.webContents.send('resp-get-ai-tags', response.models );
+        // Loop through each new model and log its properties
+        newModels.forEach((model:any) => {
+            console.log('Name:', model.name);
+            // console.log('Model:', model.model);
+            // console.log('Modified At:', model.modified_at);
+            // console.log('Size:', model.size);
+            // console.log('Digest:', model.digest);
+            // console.log('Details:', model.details);
+            console.log('--------------------------');
+        });
+
+        // Send the new models to mainWindow
+        mainWindow.webContents.send('resp-get-ai-tags', glovars.models);
 
     } else {
         console.error('No models found in the response.');
-    };
+        app.quit();
+    }
 
   } catch (error) {
       console.error('Error occurred while fetching tags:', error);
-  };
+      app.quit();
+  }
+
 
 }); //ipcMain.on('get-ai-tags', async function (event)
 

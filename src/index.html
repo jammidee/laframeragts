@@ -368,6 +368,22 @@
         });
       });
 
+      //Added by Jammi Dee 04/06/2024
+      ipcRenderer.on('resp-get-ai-tags-error', (event, models) => {
+        // Loop through models array to generate options
+        const dmodelSelect = document.getElementById("dmodel");
+        dmodelSelect.innerHTML = "";
+        dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
+        dmodelSelect.innerHTML += `<option value="embeddings">Embeddings</option>`;
+        dmodelSelect.innerHTML += `<option value="toolings">Toolings</option>`;
+        models.forEach(model => {
+
+          const modelName = model.model.split(":")[0];
+          dmodelSelect.innerHTML += `<option value="${modelName}">${model.name}</option>`;
+
+        });
+      });
+
       //==================================
       // Custom form initialization
       //==================================

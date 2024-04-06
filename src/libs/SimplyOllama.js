@@ -47,7 +47,20 @@ class SimplyOllama {
 
         } catch (error) {
             console.error('Error fetching response:', error);
-            throw error;
+            return '';
+        }
+    }
+
+    async pingchroma(request) {
+        const url = `${this.baseURL}/api/v1`;
+        
+        try {
+            const response = await axios.get(url, request);
+            return response.data;
+
+        } catch (error) {
+            console.error('Error fetching response:', error);
+            return '';
         }
     }
 

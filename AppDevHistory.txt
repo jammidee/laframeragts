@@ -15,12 +15,15 @@ Todo:
             - insert tool result in response
             - detect OS, memory and warn user for slow system if these are not enough
             - detect if ollama is present
-            - detect the model if available or not.
+            
             - use nomic-embed-text model for embeddings
             - Detect if Chromadb is present or not.
-            - 
+            - detect the model if available or not.
 
-04/06/2024  - Added ping in Ollama for chcking of ollama server
+04/06/2024  - Added ping in Ollama for checking of ollama server
+            - Added pingchroma in Ollama chdecking the Chroma server
+            - Added function to detect pre-defined models - populateModels.
+            - Added function to load tags from an extra server where model resides.
             - 
 
 04/04/2024  - Refactor and move tools to another file
