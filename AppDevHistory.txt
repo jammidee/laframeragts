@@ -14,10 +14,12 @@ Todo:
             - Resolve timeout issue for large embeddings
             - insert tool result in response
             - detect OS, memory and warn user for slow system if these are not enough
+            - How to performe task
+            - how to automatically search the internet
+            - Rename model like Tooling to Tool Master, Embedding to Document Whisperer
+            - Improve embeddings 
+            - 
             
-            
-            
-            - detect the model if available or not.
 
 04/06/2024  - Added ping in Ollama for checking of ollama server
             - Added pingchroma in Ollama chdecking the Chroma server
@@ -26,6 +28,9 @@ Todo:
             - use nomic-embed-text model for embeddings
             - Detect if Chromadb is present or not.
             - detect if ollama is present
+            - detect the model if available or not.
+            - Improve response appearance
+            - Fixed the CSS issue.
             - 
 
 04/04/2024  - Refactor and move tools to another file

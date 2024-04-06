@@ -1035,6 +1035,7 @@ ipcMain.on('get-ai-tags', async function (event) {
     ollama.setBaseURL(`http://${process.env.AI_MASTER_HOST}:${process.env.AI_MASTER_PORT}`);
     const response = await ollama.ping(chatConfig);
     if( response === ''){
+      console.log(`Ollama is not found. Please install!`);
       mainWindow.webContents.send('resp-get-ai-tags-error', `Ollama is not found. Please install!`);
       app.quit();
     };
@@ -1046,6 +1047,7 @@ ipcMain.on('get-ai-tags', async function (event) {
     ollama.setBaseURL(`http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`);
     const response = await ollama.pingchroma(chatConfig);
     if( response === ''){
+      console.log(`ChromaDB is not found. Please install!`);
       mainWindow.webContents.send('resp-get-ai-tags-error', `ChromaDB is not found. Please install!`);
       app.quit();
     };
@@ -1055,8 +1057,8 @@ ipcMain.on('get-ai-tags', async function (event) {
 
   async function populateModel( model:string, host:string, port:string){
     try {
-      let searchModel = process.env.AI_MASTER_MODEL;
-      ollama.setBaseURL(`http://${process.env.AI_MASTER_HOST}:${process.env.AI_MASTER_PORT}`);
+      let searchModel = model;
+      ollama.setBaseURL(`http://${host}:${port}`);
       const response = await ollama.tags(chatConfig);
       
       // Check if response has models
@@ -1073,7 +1075,6 @@ ipcMain.on('get-ai-tags', async function (event) {
                 //For Enterprise version only used these models
                 glovars.models.push(model);
                 modelFound = true;
-
             };
 
         });
@@ -1081,6 +1082,7 @@ ipcMain.on('get-ai-tags', async function (event) {
         // Check if the searchModel was found
         if (modelFound) {
             console.log('Search model found:', searchModel);
+
         } else {
             console.log('Search model not found:', searchModel);
             mainWindow.webContents.send('resp-get-ai-tags-error', `Master Model ${searchModel} is not found. Please install!`);
@@ -1237,32 +1239,29 @@ async function buildPersonaTooling(tools:any[]) {
 
   let persona: any[] = [];
 
-  persona.push({ "role": "system", "content": `You are an advanced, sophisticated AI assistant and world-class programmer capable of performing any coding-related task. ` });
+  persona.push({ "role": "system", "content": `You are an advanced, sophisticated AI assistant and world-class programmer capable of performing any coding-related task. ` }); 
 
   const toolPrompt = `
       You are enhanced with JavaScript via Node.js as a tool to perform your tasks:
     - You can write JavaScript to create a function.
     - You can return the result of your function by simply sending it to the console.
     - SQL and table information:
-      > tbluser - users table. 
-            Columns: userid - the unique user id, 
-                        username - the user login name, 
-                        password - the user password, 
-                        firstname - firstname of the user, 
-                        middlename - middlename of the user, 
-                        lastname - last name of the user, 
-                        email - email of the user, 
-                        phoneno - phone number of the user, 
-                        badgeid1 - badge ID of the user for attendance
-        wgenfiles - list of documents in the document management database
-            Columns:    filename - the path of the actual document,
-                        filesize - is the size of the actual document,
-                        filedate - the date the document has been uploaded,
-                        docdate - the date the document has been created,
-                        keywords - the keywords for searching the database,
-                        description - the description of the document,
-                        downloadcnt - the number of times the document has been downloaded,
-                        printcnt - the number of times the document has been printed
+      > actor_info - actors information and their movies table. 
+            Columns:    actor_id - the unique user id, 
+                        first_name - the user login name, 
+                        last_name - the user password, 
+                        film_info - the movies where they have roles.
+
+        customer_list - list of customer of the video shop
+            Columns:    ID - unique customer ID,
+                        Name - Customer name,
+                        Address - customer address,
+                        zip code - customer zip code,
+                        phone - customer phone number,
+                        city - the city of the customer,
+                        country - country of the customer,
+                        notes - Some notes about the customer,
+                        sid - like the ID.
     
       Connection: - Connection is coming from dotenv. DB_HOST=localhost, DB_NAME=dbwavegis, DB_USER=dbuser, DB_PASS=password.
                   - Always use MySQL as the database provider and use the npm library mysql2.
@@ -1275,7 +1274,7 @@ async function buildPersonaTooling(tools:any[]) {
     Always respond "[DONE]" at the end of your reply after this line.
   `;
 
-  //persona.push({ "role": "system", "content": toolPrompt });
+  persona.push({ "role": "system", "content": toolPrompt });
 
   let toolGuide = [`You are an advanced, sophisticated AI assistant capable of performing any coding-related task. 
   You are enhanced with a number of tooling functions which give you a flexible interface to the underlying system:`]
@@ -1786,7 +1785,13 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   
                   for (let p = 0; p < func_req.length; p++){
                     const paramName = func_req[p];
+
+                    //=========================================
+                    // Check if the JSON retured by AI 
+                    // has the same parameters as in the tools.
+                    //=========================================
                     const param = tool_call[paramName];
+
                     if(param === undefined ){
                       taskValid = false;
                       break;
@@ -1801,6 +1806,53 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   
                   let function_response = await function_call(func_arg);
                   console.log(`Function_response is: \n\n ${function_response}`);
+
+                  //============================
+                  // Display result to the user
+                  //============================
+                  const htmlResp = `<pre> <code> ${function_response} </code> </pre> \n\n
+                                    Please while analyzing the result...`;
+                  const dataResp = { htmlResp, props }; 
+                  mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+                  //======================================
+                  // Have the result analyzed by AI again
+                  //======================================
+                  console.log(`Analyzing result...`);
+                  props.model = process.env.AI_MASTER_MODEL;
+                  props.temperature = 0.7;
+                  let rprompt = { "role": "user", 
+                                  "content": `This is the user query: '${prompt.content}' \n\n 
+                                  This is your result: '${function_response}' \n\n
+                                  Analyze the result. Do not include the previous result in your analysis.` };
+
+                  console.log(`Props: \n\n ${JSON.stringify(props)} \n\n Prompt: \n\n ${JSON.stringify(rprompt)}`);
+                  response = await aiAssistant(rprompt, props, tools);
+                  
+                  //===========================
+                  // Push response to history
+                  //===========================
+                  if( ocontext === false ){
+                    history.push( rprompt );
+                    history.push({ "role": "assistant", "content": response });
+                  };
+
+                  //console.log(`${response}\n`);
+                  let htmlResp2 = response;
+                  htmlResp2 = await marked.parse(htmlResp2);
+                  htmlResp2 = parseCodeBlocks2(htmlResp2);
+                  console.log(`parse Code Block ${htmlResp2}\n`);
+
+                  htmlResp2 = htmlResp.replace(/\n/g, '<br>');
+
+                  console.log(`${htmlResp}\n`);
+
+                  const dataResp2 = { htmlResp: htmlResp2 , props }; 
+                  mainWindow.webContents.send( 'resp-ai-answer', dataResp2  );
+
+                  //==================================================
+                  // Analyze Ends
+                  //==================================================
   
                 }; //if(taskValid)
   
@@ -1818,26 +1870,26 @@ ipcMain.on('req-ai-answer', async (event, params) => {
         }; //if(taskPatterns.length > 0 )
 
 
-        //===========================
-        // Push response to history
-        //===========================
-        if( ocontext === false ){
-          history.push( uprompt );
-          history.push({ "role": "assistant", "content": response });
-        };
+        // //===========================
+        // // Push response to history
+        // //===========================
+        // if( ocontext === false ){
+        //   history.push( uprompt );
+        //   history.push({ "role": "assistant", "content": response });
+        // };
 
-        //console.log(`${response}\n`);
-        let htmlResp = response;
-            htmlResp = await marked.parse(htmlResp);
-            htmlResp = parseCodeBlocks2(htmlResp);
-            console.log(`parse Code Block ${htmlResp}\n`);
+        // //console.log(`${response}\n`);
+        // let htmlResp = response;
+        //     htmlResp = await marked.parse(htmlResp);
+        //     htmlResp = parseCodeBlocks2(htmlResp);
+        //     console.log(`parse Code Block ${htmlResp}\n`);
 
-            htmlResp = htmlResp.replace(/\n/g, '<br>');
+        //     htmlResp = htmlResp.replace(/\n/g, '<br>');
 
-        console.log(`${htmlResp}\n`);
+        // console.log(`${htmlResp}\n`);
 
-        const dataResp = { htmlResp, props }; 
-        mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+        // const dataResp = { htmlResp, props }; 
+        // mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
 
       } else {
@@ -1850,15 +1902,15 @@ ipcMain.on('req-ai-answer', async (event, params) => {
           history.push({ "role": "assistant", "content": response });
         };
 
-        //console.log(`${response}\n`);
+        console.log(`${response}\n`);
         let htmlResp = response;
             htmlResp = await marked.parse(htmlResp);
             htmlResp = parseCodeBlocks2(htmlResp);
-            console.log(`parse Code Block ${htmlResp}\n`);
+            console.log(`parse Code Block \n\n ${htmlResp}\n`);
 
             htmlResp = htmlResp.replace(/\n/g, '<br>');
 
-        console.log(`${htmlResp}\n`);
+        //console.log(`${htmlResp}\n`);
 
         const dataResp = { htmlResp, props }; 
         mainWindow.webContents.send( 'resp-ai-answer', dataResp  );

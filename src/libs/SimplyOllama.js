@@ -98,8 +98,7 @@ class SimplyOllama {
 
             const response = await axios.post(url, request);
 
-            //console.log(`--> ${JSON.stringify(response.data)}`);
-
+            console.log(`--> ${JSON.stringify(response.data)}`);
             const lines = response.data.split('\n').filter(Boolean);
 
             let contentValue = "";

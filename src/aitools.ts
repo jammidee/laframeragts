@@ -22,7 +22,7 @@
  *
 */
 
-const chalk                 = require('chalk');
+import chalk                from 'chalk';
 
 import { exec }             from 'child_process';
 import * as mysql           from 'mysql2/promise';
