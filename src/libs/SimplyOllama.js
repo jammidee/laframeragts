@@ -38,6 +38,19 @@ class SimplyOllama {
         this.subURL     = `${API_VERSION}`;
     }
 
+    async ping(request) {
+        const url = `${this.baseURL}`;
+        
+        try {
+            const response = await axios.get(url, request);
+            return response.data;
+
+        } catch (error) {
+            console.error('Error fetching response:', error);
+            throw error;
+        }
+    }
+
     async tags(request) {
         const url = `${this.baseURL}/${this.subURL}/tags`;
         

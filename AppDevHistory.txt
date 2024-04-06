@@ -20,6 +20,9 @@ Todo:
             - Detect if Chromadb is present or not.
             - 
 
+04/06/2024  - Added ping in Ollama for chcking of ollama server
+            - 
+
 04/04/2024  - Refactor and move tools to another file
             -
 
