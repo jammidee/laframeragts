@@ -1030,6 +1030,29 @@ ipcMain.on('get-ai-tags', async function (event) {
     "stream": true
   };
 
+  async function checkOllama(){
+
+    ollama.setBaseURL(`http://${process.env.AI_MASTER_HOST}:${process.env.AI_MASTER_PORT}`);
+    const response = await ollama.ping(chatConfig);
+    if( response === ''){
+      mainWindow.webContents.send('resp-get-ai-tags-error', `Ollama is not found. Please install!`);
+      app.quit();
+    };
+  };
+  await checkOllama();
+
+  async function checkChroma(){
+
+    ollama.setBaseURL(`http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`);
+    const response = await ollama.pingchroma(chatConfig);
+    if( response === ''){
+      mainWindow.webContents.send('resp-get-ai-tags-error', `ChromaDB is not found. Please install!`);
+      app.quit();
+    };
+  };
+  await checkChroma();
+
+
   async function populateModel( model:string, host:string, port:string){
     try {
       let searchModel = process.env.AI_MASTER_MODEL;
