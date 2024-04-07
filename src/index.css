@@ -101,7 +101,7 @@ body {
   flex: 1; /* Let the input field take remaining space */
   font-size: 14px;
   padding: 8px;
-  border-radius: 20px; /* Add rounded corners to the input field */
+  border-radius: 14px; /* Add rounded corners to the input field */
   border: 1px solid #ccc;
   margin-right: 10px; /* Add spacing between input and button */
 }
@@ -111,7 +111,7 @@ body {
   background-color: #4caf50;
   color: #fff;
   border: none;
-  border-radius: 20px; /* Add rounded corners to the button */
+  border-radius: 14px; /* Add rounded corners to the button */
   cursor: pointer;
 }
 
@@ -132,6 +132,7 @@ select {
 /* Style for dropdown options */
 .dropdowns-container select {
   font-size: 10px; /* Adjust the font size for the dropdown options */
+  border-radius: 6px;
 }
 
 .dropdowns-container {
