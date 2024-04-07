@@ -18,8 +18,10 @@ Todo:
             - how to automatically search the internet
             - Rename model like Tooling to Tool Master, Embedding to Document Whisperer
             - Improve embeddings 
-            - 
+            - Make the expertise taken from the json file.
             
+04/07/2024  - added expertise.json where prompts can be loaded by the app.
+            - 
 
 04/06/2024  - Added ping in Ollama for checking of ollama server
             - Added pingchroma in Ollama chdecking the Chroma server
