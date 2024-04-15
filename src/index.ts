@@ -1720,10 +1720,14 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       console.log(`Running prompt...`)
 
       let response = '';
-      if( props.model === process.env.AI_TOOLING_MODEL){
+      if( props.model === process.env.AI_TOOLING_MODEL ){
 
         props.temperature = 0.6;
         response = await aiAssistant(prompt, props, tools);
+
+      } else if( props.model === process.env.AI_SIMILAR_MODEL ){ 
+
+        // Process similarity query
 
       } else { 
 
@@ -1735,7 +1739,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
       //const response = await ollama.chat(props);
 
       //Process tooling compared to regular LLM query
-      if( props.model === process.env.AI_TOOLING_MODEL){
+      if( props.model === process.env.AI_TOOLING_MODEL ){
 
         let taskPatterns = extractTaskPatterns( response );
         if(taskPatterns.length === 0 ){
@@ -1895,6 +1899,27 @@ ipcMain.on('req-ai-answer', async (event, params) => {
         // const dataResp = { htmlResp, props }; 
         // mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
+      } else if( props.model === process.env.AI_SIMILAR_MODEL ){
+
+        const embeddings = new OllamaEmbeddings({
+          model: process.env.AI_EMBED_MODEL, // default value
+          baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+          requestOptions: {
+            useMMap: true,
+            numThread: 6,
+            numGpu: 1,
+          },
+        });
+      
+        //Get instance of vector store
+        const vectorStore = await Chroma.fromExistingCollection(
+          embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
+        );
+
+        //Process Similarity result
+        const response = await vectorStore.similaritySearch( message , 2 );
+
+        console.log("Similarity search result --> ", response );
 
       } else {
 

@@ -20,6 +20,10 @@ Todo:
             - Improve embeddings 
             - Make the expertise taken from the json file.
             
+04/15/2024  - Added if branch for processing similarity
+            - Added embedding block for similarity
+            - 
+
 04/14/2024  - Added similarity query in the model.
             - 
 
