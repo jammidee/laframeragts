@@ -1227,6 +1227,8 @@ async function selectModel( dmodel: string ) {
     model = process.env.AI_EMBED_MODEL || 'mistral';
   } else if ( dmodel === 'toolings' ) {
     model = process.env.AI_TOOLING_MODEL || 'mistral';
+  } else if ( dmodel === 'similarity' ) {
+    model = process.env.AI_SIMILAR_MODEL || 'chromadb';
   } else {
     model = dmodel;
   };

@@ -20,8 +20,12 @@ Todo:
             - Improve embeddings 
             - Make the expertise taken from the json file.
             
+04/14/2024  - Added similarity query in the model.
+            - 
+
 04/07/2024  - added expertise.json where prompts can be loaded by the app.
             - Improved prompts by allowing ChatGPT modify it.
+            - Adjust CSS to improve the look of the UI.
             - 
 
 04/06/2024  - Added ping in Ollama for checking of ollama server

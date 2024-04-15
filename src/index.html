@@ -360,6 +360,7 @@
         dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
         dmodelSelect.innerHTML += `<option value="embeddings">Embeddings</option>`;
         dmodelSelect.innerHTML += `<option value="toolings">Toolings</option>`;
+        dmodelSelect.innerHTML += `<option value="similarity">Similarity</option>`;
         models.forEach(model => {
 
           const modelName = model.model.split(":")[0];
