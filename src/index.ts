@@ -1704,6 +1704,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
     chatCfg.tools = tools;
     //Add prompt to personality, then query LLM
     chatCfg.messages.push( prompt );
+    console.log(`aiAssistant --> \n\n ${JSON.stringify(chatCfg)}`);
     const response = await ollama.chat(chatCfg);
     return response;
 
@@ -1717,22 +1718,44 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
     try {
 
-      console.log(`Running prompt...`)
-
       let response = '';
       if( props.model === process.env.AI_TOOLING_MODEL ){
 
+        console.log(`Running tooling prompt...`);
         props.temperature = 0.6;
         response = await aiAssistant(prompt, props, tools);
 
       } else if( props.model === process.env.AI_SIMILAR_MODEL ){ 
 
+        console.log(`Running similarity prompt... ${message}`);
         // Process similarity query
+        const embeddings = new OllamaEmbeddings({
+          model: process.env.AI_EMBED_MODEL, // default value
+          baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+          requestOptions: {
+            useMMap: true,
+            numThread: 6,
+            numGpu: 1,
+          },
+        });
+      
+        //Get instance of vector store
+        const vectorStore = await Chroma.fromExistingCollection(
+          embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
+        );
+
+        //Process Similarity result
+        const response = await vectorStore.similaritySearch( message , 2 );
+
 
       } else { 
 
+        //No tools for regular query
+        const blankTools: any[] = [];
+
+        console.log(`Running prompt...`);
         props.temperature = 0.7;
-        response = await aiAssistant(prompt, props, tools);
+        response = await aiAssistant(prompt, props, blankTools);
 
       };
       
@@ -1900,24 +1923,6 @@ ipcMain.on('req-ai-answer', async (event, params) => {
         // mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
       } else if( props.model === process.env.AI_SIMILAR_MODEL ){
-
-        const embeddings = new OllamaEmbeddings({
-          model: process.env.AI_EMBED_MODEL, // default value
-          baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-          requestOptions: {
-            useMMap: true,
-            numThread: 6,
-            numGpu: 1,
-          },
-        });
-      
-        //Get instance of vector store
-        const vectorStore = await Chroma.fromExistingCollection(
-          embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
-        );
-
-        //Process Similarity result
-        const response = await vectorStore.similaritySearch( message , 2 );
 
         console.log("Similarity search result --> ", response );
 

@@ -20,6 +20,10 @@ Todo:
             - Improve embeddings 
             - Make the expertise taken from the json file.
             
+04/16/2024  - Fixed the error on response.data.split is not a function.
+            - Remove tools if its a reqular query.
+            -
+            
 04/15/2024  - Added if branch for processing similarity
             - Added embedding block for similarity
             - 

@@ -358,9 +358,9 @@
         const dmodelSelect = document.getElementById("dmodel");
         dmodelSelect.innerHTML = "";
         dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
-        dmodelSelect.innerHTML += `<option value="embeddings">Embeddings</option>`;
-        dmodelSelect.innerHTML += `<option value="toolings">Toolings</option>`;
-        dmodelSelect.innerHTML += `<option value="similarity">Similarity</option>`;
+        dmodelSelect.innerHTML += `<option value="embeddings">Document Query</option>`;
+        dmodelSelect.innerHTML += `<option value="toolings">Tool Master</option>`;
+        dmodelSelect.innerHTML += `<option value="similarity">Vector Searcher</option>`;
         models.forEach(model => {
 
           const modelName = model.model.split(":")[0];
@@ -375,8 +375,9 @@
         const dmodelSelect = document.getElementById("dmodel");
         dmodelSelect.innerHTML = "";
         dmodelSelect.innerHTML += `<option value="auto" selected>Auto-Detect</option>`;
-        dmodelSelect.innerHTML += `<option value="embeddings">Embeddings</option>`;
-        dmodelSelect.innerHTML += `<option value="toolings">Toolings</option>`;
+        dmodelSelect.innerHTML += `<option value="embeddings">Document Query</option>`;
+        dmodelSelect.innerHTML += `<option value="toolings">Tool Master</option>`;
+        dmodelSelect.innerHTML += `<option value="similarity">Vector Searcher</option>`;
         models.forEach(model => {
 
           const modelName = model.model.split(":")[0];
@@ -672,7 +673,7 @@
 
         const { filePath, dataUri } = fileInfo;
         Swal.fire({
-            title: 'Embedding STatus',
+            title: 'Embedding Status',
             text: 'File ' + filePath + ' has been successfully embedded!',
             icon: 'success',
         });

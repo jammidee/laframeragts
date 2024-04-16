@@ -96,10 +96,13 @@ class SimplyOllama {
         
         try {
 
+            let lines = '';
             const response = await axios.post(url, request);
 
             console.log(`--> ${JSON.stringify(response.data)}`);
-            const lines = response.data.split('\n').filter(Boolean);
+            if( response.data !== null ){
+                lines = response.data.split('\n').filter(Boolean);
+            };
 
             let contentValue = "";
             lines.forEach(line => {
@@ -113,7 +116,7 @@ class SimplyOllama {
 
             });
 
-            //console.log(contentValue);
+            console.log(contentValue);
 
             return contentValue;
 
