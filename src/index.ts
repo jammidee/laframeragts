@@ -2023,14 +2023,13 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
   const simpleQuestionChain = simpleQuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
 
   const documents = await simpleQuestionChain.invoke({ userQuestion: userQuestion });
-  console.log(`The initial result: \n\n ${documents}`);
+  console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
 
   //Combine the results into a string
   const combinedDocs = combineDocuments(documents);
 
   const questionTemplate = PromptTemplate.fromTemplate(`
-    You are a langchain instructor who is good at answering questions raised by new developers or users. Answer the below question using the context.
-    Strictly use the context and answer in crisp and point to point.
+    Answer the below question using the context. Strictly use the context and answer in crisp and point to point.
     <context>
       {context}
     </context>
@@ -2067,6 +2066,7 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
     const result = input.replace(pattern, (_, code) => `<pre class="code-block">${unescapeHTML(code)}</pre>`);
 
     return result;
+    
   };
 
   let props = { 
