@@ -34,7 +34,7 @@ import {StringOutputParser}   from "@langchain/core/output_parsers"
 async function aiSimilarityAssistant(message: string): Promise<string> {
     // Initialize OllamaEmbeddings and Ollama instances
     const embeddings = new OllamaEmbeddings({
-        model: process.env.AI_EMBED_MODEL || 'default_model',
+        model: process.env.AI_EMBED_MODEL || 'mistral',
         baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
         requestOptions: {
             useMMap: true,
@@ -45,7 +45,7 @@ async function aiSimilarityAssistant(message: string): Promise<string> {
 
     const ollamaLlm = new Ollama({
         baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-        model: process.env.AI_EMBED_MODEL || 'default_model'
+        model: process.env.AI_EMBED_MODEL || 'mistral'
     });
 
     // Get instance of vector store

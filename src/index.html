@@ -583,8 +583,8 @@
           // Clear the input field after sending the message
           msgInput.value = '';
 
-          const cmd = "";
-          const params = { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd };
+          const cmd     = "";
+          const params  = { message, expertise, dstyle, dmodel, attach, datauri, ocontext, cmd };
           if(dmodel === "embeddings"){
             ipcRenderer.send('req-ai-use-embedding', params );
           } else {

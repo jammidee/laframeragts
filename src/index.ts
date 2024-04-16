@@ -1503,57 +1503,57 @@ function extractTaskPatterns(text:string) {
   return jsonPatterns;
 }
 
-async function invokeLLM(props: any) {
+// async function invokeLLM(props: any) {
 
-  //console.log(`-----`)
-  console.log(`${JSON.stringify(props)}`)
-  //console.log(`-----`)
+//   //console.log(`-----`)
+//   console.log(`${JSON.stringify(props)}`)
+//   //console.log(`-----`)
 
-  try {
+//   try {
 
-    console.log(`Running prompt...`)
+//     console.log(`Running prompt...`)
 
-    const response = await ollama.chat(props);
+//     const response = await ollama.chat(props);
 
-    //===========================
-    // Push response to history
-    //===========================
-    history.push({ "role": "assistant", "content": response });
+//     //===========================
+//     // Push response to history
+//     //===========================
+//     history.push({ "role": "assistant", "content": response });
 
-    //console.log(`${response}\n`);
-    // let htmlResp = response.replace(/\n/g, '<br>');
-    //     htmlResp = await marked.parse(htmlResp);
-    //     htmlResp = parseCodeBlocks(htmlResp);
+//     //console.log(`${response}\n`);
+//     // let htmlResp = response.replace(/\n/g, '<br>');
+//     //     htmlResp = await marked.parse(htmlResp);
+//     //     htmlResp = parseCodeBlocks(htmlResp);
 
 
-    markdownconverter.setFlavor('github');
-    //markdownconverter.setMoreStyling( true );
-    let htmlResp = markdownconverter.makeHtml( response.replace(/\n/g, '<br>') );
-    console.log(`html1 ${htmlResp}`);
-    htmlResp = hljs.highlightAuto( htmlResp ).value;
-    console.log(`html2 ${htmlResp}`);
+//     markdownconverter.setFlavor('github');
+//     //markdownconverter.setMoreStyling( true );
+//     let htmlResp = markdownconverter.makeHtml( response.replace(/\n/g, '<br>') );
+//     console.log(`html1 ${htmlResp}`);
+//     htmlResp = hljs.highlightAuto( htmlResp ).value;
+//     console.log(`html2 ${htmlResp}`);
 
-    console.log(`${htmlResp}\n`);
+//     console.log(`${htmlResp}\n`);
 
-    //event.returnValue = { htmlResp };
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+//     //event.returnValue = { htmlResp };
+//     const dataResp = { htmlResp, props }; 
+//     mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
-  }catch(error) {
+//   }catch(error) {
     
-    let htmlResp: string = "";
-    htmlResp += `It seems that I got a brain freeze! This is the issue that I encounter: <br> <br> 
-                ${error}`;
+//     let htmlResp: string = "";
+//     htmlResp += `It seems that I got a brain freeze! This is the issue that I encounter: <br> <br> 
+//                 ${error}`;
 
-    const dataResp = { htmlResp, props }; 
-    mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+//     const dataResp = { htmlResp, props }; 
+//     mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
-    console.log(`Query failed!`)
-    console.log(error)
+//     console.log(`Query failed!`)
+//     console.log(error)
 
-  };
+//   };
 
-};
+// };
 
 // Get the last elements that fits the tokenlimit
 function pruneHistoryByTokenCount(elements:any[], tokenlimit:number) {
@@ -1598,7 +1598,6 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   let uprompt:any;
   let persona: any    = [];
-
   let modelResponse   = "";
   let toolList: any   = [];
   let outOfContext    = ocontext;
@@ -1618,15 +1617,19 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
   //Selection appropriate model
   model = await selectModel( dmodel );
-  console.log(`The model is ${model}`);
+  console.log(`The selected model is ${model}`);
 
   //Build the AI persona
   if( model === process.env.AI_TOOLING_MODEL ){
+
     persona   = await buildPersonaTooling( aitools );
     toolList  = await buildToolList( aitools );
     console.log(`Tooling Persona: \n\n ${JSON.stringify(persona)}`);
+
   } else {
+
     persona = await buildPersona( model, expertise, dstyle );
+
   };
 
   // Count the number of tokens of Persona
@@ -1659,14 +1662,6 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   } else {
     uprompt = { "role": "user", "content": message };
   };
-
-  // if( outOfContext === false ){
-
-  //   console.log(`What model ${model}`);
-  //   //history.push(uprompt);
-
-  // }; //if( outOfContext === false )
-
 
   //==========================================================
   // Process personality = persona + history
@@ -1713,7 +1708,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
   async function invokeLLMStream( prompt:any, props: any, tools: any, ocontext: boolean) {
 
     //console.log(`-----`)
-    console.log(`${JSON.stringify(props)}`)
+    //console.log(`${JSON.stringify(props)}`)
     //console.log(`-----`)
 
     try {
@@ -1729,72 +1724,31 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
         const aiSimilarityAssistant = require('./aiSimilarityAssistant');
         console.log(`Running similarity prompt... ${message}`);
-        // Process similarity query
-        // const embeddings = new OllamaEmbeddings({
-        //   model: process.env.AI_EMBED_MODEL, // default value
-        //   baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-        //   requestOptions: {
-        //     useMMap: true,
-        //     numThread: 6,
-        //     numGpu: 1,
-        //   },
-        // });
-      
-        // const ollamaLlm = new Ollama({
-        //   baseUrl:`http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-        //   model:process.env.AI_EMBED_MODEL
-        // });
-
-        // //Get instance of vector store
-        // const vectorStore = await Chroma.fromExistingCollection(
-        //   embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
-        // );
-
-        //Process Similarity result
-        //const response = await vectorStore.similaritySearch( message , 2 );
-
-        // //Get retriever
-        // const chromaRetriever = vectorStore.asRetriever();
-        // //const userQuestion = "What are the three modules provided by langchain?";
-        // const userQuestion = message;
-
-        // //Create a prompt tempalate and convert the user question into standalone question
-        // const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
-        // const QuestionChain = QuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
-
-        // const documents = await QuestionChain.invoke({ userQuestion: userQuestion });
-        // console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
-
-        // //Utility function to combine documents
-        // function combineDocuments(docs:any) {
-        //   return docs.map((doc:any) => doc.pageContent).join('\n\n');
-        // }
-
-        // //Combine the results into a string
-        // const response = combineDocuments(documents);
-
         aiSimilarityAssistant(message)
-        .then((response:any) => {
+        .then( async (response:any) => {
+
             // Handle the response here
             console.log("Response:", response);
+            console.log(`${response}\n`);
+            let htmlResp = response;
+                htmlResp = await marked.parse(htmlResp);
+                htmlResp = parseCodeBlocks2(htmlResp);
+                console.log(`parse Code Block \n\n ${htmlResp}\n`);
+    
+                htmlResp = htmlResp.replace(/\n/g, '<br>');
+    
+            //console.log(`${htmlResp}\n`);
+    
+            const dataResp = { htmlResp, props }; 
+            mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
         })
         .catch((error:any) => {
+
             // Handle errors
             console.error("Error:", error);
+            
         });
-
-        console.log(`${response}\n`);
-        let htmlResp = response;
-            htmlResp = await marked.parse(htmlResp);
-            htmlResp = parseCodeBlocks2(htmlResp);
-            console.log(`parse Code Block \n\n ${htmlResp}\n`);
-
-            htmlResp = htmlResp.replace(/\n/g, '<br>');
-
-        //console.log(`${htmlResp}\n`);
-
-        const dataResp = { htmlResp, props }; 
-        mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
       } else if( props.model === process.env.AI_EMBED_MODEL ){
 
@@ -1802,11 +1756,22 @@ ipcMain.on('req-ai-answer', async (event, params) => {
         const aiEmbedAssistant = require('./aiEmbedAssistant');
         console.log(`Running AI Embed prompt...`);
         props.temperature = 0.6;
-        //response = await aiEmbedAssistant(prompt, props, tools);
         aiEmbedAssistant(prompt, props, tools)
-        .then( (response:any) => {
+        .then( async (response:any) => {
 
             // Handle the response
+            console.log(`${response}\n`);
+            let htmlResp = response;
+                htmlResp = await marked.parse(htmlResp);
+                htmlResp = parseCodeBlocks2(htmlResp);
+                console.log(`parse Code Block \n\n ${htmlResp}\n`);
+    
+                htmlResp = htmlResp.replace(/\n/g, '<br>');
+    
+            //console.log(`${htmlResp}\n`);
+    
+            const dataResp = { htmlResp, props }; 
+            mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
         })
         .catch( (error:any) => {
@@ -1827,7 +1792,9 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
       };
       
-      //const response = await ollama.chat(props);
+      //=================================================
+      // RESULT ANALYSIS
+      //=================================================
 
       //Process tooling compared to regular LLM query
       if( props.model === process.env.AI_TOOLING_MODEL ){
