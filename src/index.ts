@@ -1739,14 +1739,51 @@ ipcMain.on('req-ai-answer', async (event, params) => {
           },
         });
       
+        const ollamaLlm = new Ollama({
+          baseUrl:`http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+          model:process.env.AI_EMBED_MODEL
+        });
+
         //Get instance of vector store
         const vectorStore = await Chroma.fromExistingCollection(
           embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
         );
 
         //Process Similarity result
-        const response = await vectorStore.similaritySearch( message , 2 );
+        //const response = await vectorStore.similaritySearch( message , 2 );
 
+        //Get retriever
+        const chromaRetriever = vectorStore.asRetriever();
+        //const userQuestion = "What are the three modules provided by langchain?";
+        const userQuestion = message;
+
+        //Create a prompt tempalate and convert the user question into standalone question
+        const simpleQuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
+        const simpleQuestionChain = simpleQuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
+
+        const documents = await simpleQuestionChain.invoke({ userQuestion: userQuestion });
+        console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
+
+        //Utility function to combine documents
+        function combineDocuments(docs:any) {
+          return docs.map((doc:any) => doc.pageContent).join('\n\n');
+        }
+
+        //Combine the results into a string
+        const response = combineDocuments(documents);
+
+        console.log(`${response}\n`);
+        let htmlResp = response;
+            htmlResp = await marked.parse(htmlResp);
+            htmlResp = parseCodeBlocks2(htmlResp);
+            console.log(`parse Code Block \n\n ${htmlResp}\n`);
+
+            htmlResp = htmlResp.replace(/\n/g, '<br>');
+
+        //console.log(`${htmlResp}\n`);
+
+        const dataResp = { htmlResp, props }; 
+        mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
 
       } else { 
 
@@ -2066,7 +2103,7 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
     const result = input.replace(pattern, (_, code) => `<pre class="code-block">${unescapeHTML(code)}</pre>`);
 
     return result;
-    
+
   };
 
   let props = { 
@@ -2077,9 +2114,9 @@ ipcMain.on('req-ai-use-embedding', async (event, params) => {
     "stream": true
   };
 
-  let htmlResp = llmResponse.replace(/\n/g, '<br>');
-  htmlResp = await marked.parse(htmlResp);
-  htmlResp = parseCodeBlocks(htmlResp);
+  let htmlResp  = llmResponse.replace(/\n/g, '<br>');
+  htmlResp      = await marked.parse(htmlResp);
+  htmlResp      = parseCodeBlocks(htmlResp);
 
   const dataResp = { htmlResp, props }; 
   mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
