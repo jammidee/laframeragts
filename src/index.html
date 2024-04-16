@@ -608,6 +608,16 @@
 
           if( props.model === process.env.AI_SIMILAR_MODEL){
 
+            //Process regular query
+            replyElement.classList.add('sophia-area');
+            replyElement.innerHTML = `💖<b>Sophia</b> <font color="grey">( ${props.model} talking... )</font><br> ${htmlResp}`;
+            chatMessages.appendChild(elemLine);
+            chatMessages.appendChild(replyElement);
+
+            chatContainer.scrollTop = chatMessages.scrollHeight;
+            btnSend.style.display = 'inline-block';
+            loadingIcon.classList.add('hidden');
+
             //Apply AI to the result of similarity
             var msgInput        = document.getElementById('msgSend');
             var message         = msgInput.value.trim();
@@ -631,11 +641,11 @@
             chatMessages.appendChild(elemLine);
             chatMessages.appendChild(replyElement);
 
-          };
+            chatContainer.scrollTop = chatMessages.scrollHeight;
+            btnSend.style.display = 'inline-block';
+            loadingIcon.classList.add('hidden');
 
-          chatContainer.scrollTop = chatMessages.scrollHeight;
-          btnSend.style.display = 'inline-block';
-          loadingIcon.classList.add('hidden');
+          };
 
       });
 

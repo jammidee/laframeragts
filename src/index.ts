@@ -1727,50 +1727,61 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
       } else if( props.model === process.env.AI_SIMILAR_MODEL ){ 
 
+        const aiSimilarityAssistant = require('./aiSimilarityAssistant');
         console.log(`Running similarity prompt... ${message}`);
         // Process similarity query
-        const embeddings = new OllamaEmbeddings({
-          model: process.env.AI_EMBED_MODEL, // default value
-          baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-          requestOptions: {
-            useMMap: true,
-            numThread: 6,
-            numGpu: 1,
-          },
-        });
+        // const embeddings = new OllamaEmbeddings({
+        //   model: process.env.AI_EMBED_MODEL, // default value
+        //   baseUrl: `http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+        //   requestOptions: {
+        //     useMMap: true,
+        //     numThread: 6,
+        //     numGpu: 1,
+        //   },
+        // });
       
-        const ollamaLlm = new Ollama({
-          baseUrl:`http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
-          model:process.env.AI_EMBED_MODEL
-        });
+        // const ollamaLlm = new Ollama({
+        //   baseUrl:`http://${process.env.AI_EMBED_HOST}:${process.env.AI_EMBED_PORT}`,
+        //   model:process.env.AI_EMBED_MODEL
+        // });
 
-        //Get instance of vector store
-        const vectorStore = await Chroma.fromExistingCollection(
-          embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
-        );
+        // //Get instance of vector store
+        // const vectorStore = await Chroma.fromExistingCollection(
+        //   embeddings, { collectionName: process.env.COLLECTION_NAME || "sophia-collection" , url: `http://${process.env.VEC_EMBED_HOST}:${process.env.VEC_EMBED_PORT}`},
+        // );
 
         //Process Similarity result
         //const response = await vectorStore.similaritySearch( message , 2 );
 
-        //Get retriever
-        const chromaRetriever = vectorStore.asRetriever();
-        //const userQuestion = "What are the three modules provided by langchain?";
-        const userQuestion = message;
+        // //Get retriever
+        // const chromaRetriever = vectorStore.asRetriever();
+        // //const userQuestion = "What are the three modules provided by langchain?";
+        // const userQuestion = message;
 
-        //Create a prompt tempalate and convert the user question into standalone question
-        const simpleQuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
-        const simpleQuestionChain = simpleQuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
+        // //Create a prompt tempalate and convert the user question into standalone question
+        // const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
+        // const QuestionChain = QuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
 
-        const documents = await simpleQuestionChain.invoke({ userQuestion: userQuestion });
-        console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
+        // const documents = await QuestionChain.invoke({ userQuestion: userQuestion });
+        // console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
 
-        //Utility function to combine documents
-        function combineDocuments(docs:any) {
-          return docs.map((doc:any) => doc.pageContent).join('\n\n');
-        }
+        // //Utility function to combine documents
+        // function combineDocuments(docs:any) {
+        //   return docs.map((doc:any) => doc.pageContent).join('\n\n');
+        // }
 
-        //Combine the results into a string
-        const response = combineDocuments(documents);
+        // //Combine the results into a string
+        // const response = combineDocuments(documents);
+
+        aiSimilarityAssistant(message)
+        .then((response:any) => {
+            // Handle the response here
+            console.log("Response:", response);
+        })
+        .catch((error:any) => {
+            // Handle errors
+            console.error("Error:", error);
+        });
 
         console.log(`${response}\n`);
         let htmlResp = response;
@@ -1784,6 +1795,26 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
         const dataResp = { htmlResp, props }; 
         mainWindow.webContents.send( 'resp-ai-answer', dataResp  );
+
+      } else if( props.model === process.env.AI_EMBED_MODEL ){
+
+        // Run Embedding assistant here
+        const aiEmbedAssistant = require('./aiEmbedAssistant');
+        console.log(`Running AI Embed prompt...`);
+        props.temperature = 0.6;
+        //response = await aiEmbedAssistant(prompt, props, tools);
+        aiEmbedAssistant(prompt, props, tools)
+        .then( (response:any) => {
+
+            // Handle the response
+
+        })
+        .catch( (error:any) => {
+
+            // Handle errors
+            console.log(`${error}`);
+
+        });
 
       } else { 
 
