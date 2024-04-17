@@ -96,11 +96,11 @@ class SimplyOllama {
         
         try {
 
-            let lines = '';
+            let lines = [];
             const response = await axios.post(url, request);
 
             console.log(`--> ${JSON.stringify(response.data)}`);
-            if( response.data !== null ){
+            if( typeof response.data === 'string' ){
                 lines = response.data.split('\n').filter(Boolean);
             };
 

@@ -1747,7 +1747,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
 
             // Handle errors
             console.error("Error:", error);
-            
+
         });
 
       } else if( props.model === process.env.AI_EMBED_MODEL ){
@@ -1786,7 +1786,7 @@ ipcMain.on('req-ai-answer', async (event, params) => {
         //No tools for regular query
         const blankTools: any[] = [];
 
-        console.log(`Running prompt...`);
+        console.log(`Running normal prompt...`);
         props.temperature = 0.7;
         response = await aiAssistant(prompt, props, blankTools);
 

@@ -57,23 +57,23 @@ async function aiSimilarityAssistant(message: string): Promise<string> {
     const chromaRetriever = vectorStore.asRetriever();
 
     // Define user question
-    const userQuestion = message;
+    const usrQuestion = message;
 
     // Create a prompt template and convert the user question into a standalone question
-    const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
+    const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {usrQuestion}`);
     const QuestionChain = QuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
 
     // Invoke the question chain
-    const documents = await QuestionChain.invoke({ userQuestion: userQuestion });
+    const documents = await QuestionChain.invoke({ usrQuestion: usrQuestion });
     console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
 
     // Utility function to combine documents
-    function combineDocuments(docs: any[]): string {
+    function combineDocs(docs: any[]): string {
         return docs.map((doc: any) => doc.pageContent).join('\n\n');
     }
 
     // Combine the results into a string
-    const response = combineDocuments(documents);
+    const response = combineDocs(documents);
 
     return response;
 }

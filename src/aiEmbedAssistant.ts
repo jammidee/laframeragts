@@ -71,7 +71,7 @@ async function aiEmbedAssistant(prompt: any, props: ChatConfig, tools: any): Pro
         model: process.env.AI_EMBED_MODEL || 'default_model'
     });
 
-    function combineDocuments(docs: any[]): string {
+    function combineDocs(docs: any[]): string {
         return docs.map((doc) => doc.pageContent).join('\n\n');
     }
 
@@ -81,15 +81,15 @@ async function aiEmbedAssistant(prompt: any, props: ChatConfig, tools: any): Pro
 
     const chromaRetriever = vectorStore.asRetriever();
 
-    const userQuestion = prompt;
+    const usrQuestion = prompt;
 
-    const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {userQuestion}`);
+    const QuestionPrompt = PromptTemplate.fromTemplate(`For following user question convert it into a standalone question {usrQuestion}`);
     const QuestionChain = QuestionPrompt.pipe(ollamaLlm).pipe(new StringOutputParser()).pipe(chromaRetriever);
 
-    const documents = await QuestionChain.invoke({ userQuestion: userQuestion });
+    const documents = await QuestionChain.invoke({ usrQuestion: usrQuestion });
     console.log(`The initial result: \n\n ${JSON.stringify(documents)}`);
 
-    const combinedDocs = combineDocuments(documents);
+    const combinedDocs = combineDocs(documents);
 
     const questionTemplate = PromptTemplate.fromTemplate(`
       Answer the below question using the context. Strictly use the context and answer in crisp and point to point.
@@ -97,7 +97,7 @@ async function aiEmbedAssistant(prompt: any, props: ChatConfig, tools: any): Pro
         {context}
       </context>
   
-      question: {userQuestion}
+      question: {usrQuestion}
   
     `);
 
@@ -105,7 +105,7 @@ async function aiEmbedAssistant(prompt: any, props: ChatConfig, tools: any): Pro
 
     const llmResponse = await answerChain.invoke({
         context: combinedDocs,
-        userQuestion: userQuestion
+        usrQuestion: usrQuestion
     });
 
     console.log("Printing llm response --> ", llmResponse);
